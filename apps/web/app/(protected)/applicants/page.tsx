@@ -147,15 +147,9 @@ export default async function ApplicantsPage() {
         <div className="space-y-4">
           {interests.map((interest) => {
             const issue = issueMap.get(interest.issue_id);
-            const student = interest.student_profiles as {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  university: string | null;
-  degree: string | null;
-  major: string | null;
-  expertise_areas: string[] | null;
-};
+            const student = Array.isArray(interest.student_profiles) 
+                                      ? interest.student_profiles[0] 
+                                      : interest.student_profiles;
 
             return (
               <Card key={interest.id} padding="lg" className="hover:shadow-md transition-shadow">
