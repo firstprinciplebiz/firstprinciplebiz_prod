@@ -299,7 +299,7 @@ export function IssuesList({
                             </p>
                           </div>
                           {hasApplied && (
-                            <Badge variant="emerald">
+                            <Badge variant="success">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               Applied
                             </Badge>
