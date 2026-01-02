@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -17,7 +17,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-export default function StudentLoginPage() {
+function StudentLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
@@ -268,8 +268,19 @@ export default function StudentLoginPage() {
   );
 }
 
-
-
+export default function StudentLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
+        </div>
+      </div>
+    }>
+      <StudentLoginContent />
+    </Suspense>
+  );
+}
 
 
 

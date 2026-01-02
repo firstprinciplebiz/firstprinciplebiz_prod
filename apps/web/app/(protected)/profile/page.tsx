@@ -103,21 +103,21 @@ export default async function ProfilePage() {
           {/* Name & Role */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-slate-900">
-              {role === "student" ? profile.full_name : profile.owner_name}
+              {role === "student" ? String(profile.full_name || "") : String(profile.owner_name || "")}
             </h2>
             <div className="flex items-center gap-2 mt-1">
               {role === "student" ? (
                 <>
                   <GraduationCap className="w-4 h-4 text-primary" />
                   <span className="text-slate-600">
-                    {profile.degree_name} in {profile.major}
+                    {String(profile.degree_name || "")} in {String(profile.major || "")}
                   </span>
                 </>
               ) : (
                 <>
                   <Building2 className="w-4 h-4 text-emerald-600" />
                   <span className="text-slate-600">
-                    {profile.business_name}
+                    {String(profile.business_name || "")}
                   </span>
                 </>
               )}
@@ -130,49 +130,49 @@ export default async function ProfilePage() {
               <Mail className="w-5 h-5 text-slate-400" />
               {user.email}
             </div>
-            {profile.phone && (
+            {profile.phone ? (
               <div className="flex items-center gap-3 text-slate-600">
                 <Phone className="w-5 h-5 text-slate-400" />
-                {profile.phone}
+                {String(profile.phone)}
               </div>
-            )}
-            {role === "student" && profile.university_name && (
+            ) : null}
+            {role === "student" && profile.university_name ? (
               <div className="flex items-center gap-3 text-slate-600">
                 <BookOpen className="w-5 h-5 text-slate-400" />
-                {profile.university_name}
+                {String(profile.university_name)}
               </div>
-            )}
-            {role === "business" && profile.address && (
+            ) : null}
+            {role === "business" && profile.address ? (
               <div className="flex items-center gap-3 text-slate-600">
                 <MapPin className="w-5 h-5 text-slate-400" />
-                {profile.address}
+                {String(profile.address)}
               </div>
-            )}
-            {role === "business" && profile.industry && (
+            ) : null}
+            {role === "business" && profile.industry ? (
               <div className="flex items-center gap-3 text-slate-600">
                 <Briefcase className="w-5 h-5 text-slate-400" />
-                {profile.industry}
+                {String(profile.industry)}
               </div>
-            )}
-            {role === "business" && profile.business_age_years && (
+            ) : null}
+            {role === "business" && profile.business_age_years ? (
               <div className="flex items-center gap-3 text-slate-600">
                 <Calendar className="w-5 h-5 text-slate-400" />
-                {profile.business_age_years} years in business
+                {String(profile.business_age_years)} years in business
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Bio / Description */}
-          {(profile.bio || profile.business_description) && (
+          {(profile.bio || profile.business_description) ? (
             <div className="mb-6">
               <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">
                 {role === "student" ? "About Me" : "About the Business"}
               </h3>
               <p className="text-slate-700">
-                {role === "student" ? profile.bio : profile.business_description}
+                {role === "student" ? String(profile.bio || "") : String(profile.business_description || "")}
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       </Card>
 
@@ -224,13 +224,13 @@ export default async function ProfilePage() {
               Work Preferences
             </h3>
             <div className="flex flex-wrap gap-4">
-              {profile.open_to_paid && (
+              {Boolean(profile.open_to_paid) && (
                 <Badge variant="success">Open to Paid Work</Badge>
               )}
-              {profile.open_to_voluntary && (
+              {Boolean(profile.open_to_voluntary) && (
                 <Badge variant="primary">Open to Voluntary Work</Badge>
               )}
-              {!profile.open_to_paid && !profile.open_to_voluntary && (
+              {!Boolean(profile.open_to_paid) && !Boolean(profile.open_to_voluntary) && (
                 <p className="text-slate-500 text-sm">No preferences set</p>
               )}
             </div>

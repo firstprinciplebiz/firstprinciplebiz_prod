@@ -65,9 +65,18 @@ export default async function StudentProfilePage({
     .eq("status", "approved")
     .order("updated_at", { ascending: false });
 
+  // Helper to extract issue from array or object
+  const getIssue = (issues: unknown) => {
+    if (Array.isArray(issues)) return issues[0];
+    return issues as { id: string; title: string; status: string; compensation_type: string; business_profiles: { business_name: string }[] } | null;
+  };
+
   // Filter to only show completed/closed issues
   const completedIssuesList = (completedIssues || [])
-    .filter((i) => i.issues && (i.issues.status === "completed" || i.issues.status === "closed"))
+    .filter((i) => {
+      const issue = getIssue(i.issues);
+      return issue && (issue.status === "completed" || issue.status === "closed");
+    })
     .slice(0, 5);
 
   return (
@@ -205,23 +214,27 @@ export default async function StudentProfilePage({
             <h2 className="text-lg font-semibold text-slate-900">Completed Projects</h2>
           </div>
           <div className="space-y-3">
-            {completedIssuesList.map((item) => (
+            {completedIssuesList.map((item) => {
+              const issue = getIssue(item.issues);
+              const businessProfiles = issue?.business_profiles;
+              const businessName = Array.isArray(businessProfiles) ? businessProfiles[0]?.business_name : businessProfiles?.business_name;
+              return (
               <Link
                 key={item.id}
-                href={`/issues/${item.issues?.id}`}
+                href={`/issues/${issue?.id}`}
                 className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-colors group"
               >
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-slate-900 truncate group-hover:text-primary transition-colors">
-                    {item.issues?.title}
+                    {issue?.title}
                   </h3>
                   <p className="text-sm text-slate-500">
-                    {item.issues?.business_profiles?.business_name} • {item.issues?.compensation_type}
+                    {businessName} • {issue?.compensation_type}
                   </p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0" />
               </Link>
-            ))}
+            );})}
           </div>
         </Card>
       )}

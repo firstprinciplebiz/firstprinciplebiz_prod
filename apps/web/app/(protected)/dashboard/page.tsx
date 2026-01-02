@@ -124,17 +124,17 @@ export default async function DashboardPage() {
 
     if (recentStudentInterests) {
       studentRecentIssues = recentStudentInterests
-      .filter((i) => i.issues)
-      .map((i) => {
-        const issue = Array.isArray(i.issues) ? i.issues[0] : i.issues;
-        return {
-          id: issue!.id,
-          title: issue!.title,
-          status: issue!.status,
-          interest_status: i.status,
-          updated_at: i.updated_at,
-        };
-      });
+        .filter((i) => i.issues)
+        .map((i) => {
+          const issue = Array.isArray(i.issues) ? i.issues[0] : i.issues;
+          return {
+            id: issue!.id,
+            title: issue!.title,
+            status: issue!.status,
+            interest_status: i.status,
+            updated_at: i.updated_at,
+          };
+        });
     }
   } else if (role === "business" && profile) {
     // Get all issues for this business with their stats

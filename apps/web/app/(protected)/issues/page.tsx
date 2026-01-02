@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { IssuesList } from "./IssuesList";
@@ -114,15 +115,17 @@ export default async function IssuesPage({
         </p>
       </div>
 
-      <IssuesList
-        issues={issues || []}
-        totalPages={totalPages}
-        currentPage={page}
-        appliedIssueIds={appliedIssueIds}
-        initialSearch={search}
-        initialCompensation={compensation}
-        initialSkills={skills}
-      />
+      <Suspense fallback={<div className="text-center py-8">Loading issues...</div>}>
+        <IssuesList
+          issues={issues || []}
+          totalPages={totalPages}
+          currentPage={page}
+          appliedIssueIds={appliedIssueIds}
+          initialSearch={search}
+          initialCompensation={compensation}
+          initialSkills={skills}
+        />
+      </Suspense>
     </div>
   );
 }

@@ -75,9 +75,9 @@ function AttachmentDisplay({
   formatFileSize,
 }: {
   filePath: string;
-  fileName: string | null;
-  fileType: string | null;
-  fileSize: number | null;
+  fileName: string | null | undefined;
+  fileType: string | null | undefined;
+  fileSize: number | null | undefined;
   isMine: boolean;
   formatFileSize: (bytes: number) => string;
 }) {

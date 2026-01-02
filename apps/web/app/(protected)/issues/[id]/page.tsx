@@ -101,6 +101,17 @@ export default async function IssueDetailPage({
     return ISSUE_STATUSES.find((s) => s.value === status) || ISSUE_STATUSES[0];
   };
 
+  const mapColorToVariant = (color: string): "default" | "primary" | "success" | "warning" | "danger" => {
+    const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "danger"> = {
+      amber: "warning",
+      emerald: "success",
+      blue: "primary",
+      red: "danger",
+      slate: "default",
+    };
+    return colorMap[color] || "default";
+  };
+
   const statusConfig = getStatusConfig(issue.status);
 
   return (
@@ -141,7 +152,7 @@ export default async function IssueDetailPage({
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-1">
                   <h1 className="text-2xl font-bold text-slate-900">{issue.title}</h1>
-                  <Badge variant={statusConfig.color as "emerald" | "amber" | "blue" | "slate"}>
+                  <Badge variant={mapColorToVariant(statusConfig.color)}>
                     {issue.status.replace("_", " ")}
                   </Badge>
                 </div>

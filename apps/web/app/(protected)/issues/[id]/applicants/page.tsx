@@ -64,19 +64,19 @@ export default async function IssueApplicantsPage({
     .order("created_at", { ascending: false });
 
   const getStatusConfig = (status: string) => {
-      return INTEREST_STATUSES.find((s) => s.value === status) || INTEREST_STATUSES[0];
-    };
+    return INTEREST_STATUSES.find((s) => s.value === status) || INTEREST_STATUSES[0];
+  };
 
-    // Add this mapping function
-    const mapColorToVariant = (color: string): "default" | "primary" | "success" | "warning" | "danger" => {
-      const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "danger"> = {
-        amber: "warning",
-        emerald: "success",
-        red: "danger",
-        slate: "default",
-      };
-      return colorMap[color] || "default";
+  const mapColorToVariant = (color: string): "default" | "primary" | "success" | "warning" | "danger" => {
+    const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "danger"> = {
+      amber: "warning",
+      emerald: "success",
+      blue: "primary",
+      red: "danger",
+      slate: "default",
     };
+    return colorMap[color] || "default";
+  };
 
   // Group applicants by status
   const pendingApplicants = applicants?.filter((a) => a.status === "pending") || [];
@@ -235,6 +235,7 @@ export default async function IssueApplicantsPage({
     </div>
   );
 }
+
 
 
 

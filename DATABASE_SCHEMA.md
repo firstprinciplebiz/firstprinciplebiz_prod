@@ -377,3 +377,4 @@ Enable realtime for these tables in Supabase Dashboard → Database → Replicat
 - `issue_interests` - For application status updates
 
 
+

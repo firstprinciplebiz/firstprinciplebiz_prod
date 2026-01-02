@@ -33,7 +33,8 @@ export function RealtimeRefresh({ tables }: RealtimeRefreshProps) {
 
     // Subscribe to each table
     tables.forEach((table) => {
-      channel = channel.on(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      channel = (channel as any).on(
         "postgres_changes",
         {
           event: table.event || "*",
@@ -58,6 +59,7 @@ export function RealtimeRefresh({ tables }: RealtimeRefreshProps) {
   // This component doesn't render anything
   return null;
 }
+
 
 
 

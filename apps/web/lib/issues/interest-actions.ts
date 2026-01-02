@@ -131,7 +131,8 @@ export async function withdrawApplication(interestId: string) {
     .eq("id", interestId)
     .single();
 
-  if (!interest || interest.student.user_id !== user.id) {
+  const student = Array.isArray(interest?.student) ? interest.student[0] : interest?.student;
+  if (!interest || !student || student.user_id !== user.id) {
     return { error: "Application not found" };
   }
 
@@ -174,7 +175,9 @@ export async function updateInterestStatus(
   }
 
   const issueId = interest.issue_id;
-  const studentUserId = interest.student_profiles.user_id;
+  const studentProfiles = interest.student_profiles;
+  const studentProfile = Array.isArray(studentProfiles) ? studentProfiles[0] : studentProfiles;
+  const studentUserId = studentProfile?.user_id;
 
   // Get issue details
   const { data: issue, error: issueError } = await supabase

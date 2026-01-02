@@ -67,20 +67,20 @@ export default async function MyIssuesPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): "default" | "primary" | "success" | "warning" | "danger" => {
     switch (status) {
       case "open":
         return "primary";
       case "in_progress_accepting":
-        return "blue";
+        return "primary";
       case "in_progress_full":
-        return "amber";
+        return "warning";
       case "completed":
-        return "green";
+        return "success";
       case "closed":
-        return "slate";
+        return "default";
       default:
-        return "slate";
+        return "default";
     }
   };
 
@@ -184,7 +184,7 @@ export default async function MyIssuesPage() {
                     >
                       {issue.title}
                     </Link>
-                    <Badge variant={getStatusColor(issue.status) as "primary" | "blue" | "amber" | "green" | "slate"}>
+                    <Badge variant={getStatusColor(issue.status)}>
                       {getStatusIcon(issue.status)}
                       <span className="ml-1">{getStatusLabel(issue.status)}</span>
                     </Badge>

@@ -84,11 +84,17 @@ export default async function MyApplicationsPage({
 
   const { data: applications } = await applicationsQuery;
 
+  // Helper to extract issue from array or object
+  const getIssue = (issues: unknown) => {
+    if (Array.isArray(issues)) return issues[0];
+    return issues as { id: string; title: string; status: string; compensation_type: string; business_id: string } | null;
+  };
+
   // Fetch business names for each issue
   const businessIds = [...new Set(
     (applications || [])
-      .filter(app => app.issues?.business_id)
-      .map(app => app.issues!.business_id)
+      .filter(app => getIssue(app.issues)?.business_id)
+      .map(app => getIssue(app.issues)!.business_id)
   )];
   
   let businessMap: Record<string, string> = {};
@@ -108,15 +114,15 @@ export default async function MyApplicationsPage({
   // Filter by issue status if needed
   let filteredApplications = applications || [];
   if (statusFilter === "in_progress") {
-    filteredApplications = filteredApplications.filter(
-      (app) => app.issues && 
-      (app.issues.status === "in_progress_accepting" || app.issues.status === "in_progress_full")
-    );
+    filteredApplications = filteredApplications.filter((app) => {
+      const issue = getIssue(app.issues);
+      return issue && (issue.status === "in_progress_accepting" || issue.status === "in_progress_full");
+    });
   } else if (statusFilter === "closed") {
-    filteredApplications = filteredApplications.filter(
-      (app) => app.issues && 
-      (app.issues.status === "completed" || app.issues.status === "closed")
-    );
+    filteredApplications = filteredApplications.filter((app) => {
+      const issue = getIssue(app.issues);
+      return issue && (issue.status === "completed" || issue.status === "closed");
+    });
   }
 
   const getStatusBadge = (appStatus: string, issueStatus: string) => {
@@ -211,10 +217,12 @@ export default async function MyApplicationsPage({
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredApplications.map((application) => (
+          {filteredApplications.map((application) => {
+            const issue = getIssue(application.issues);
+            return (
             <Link
               key={application.id}
-              href={`/issues/${application.issues?.id}`}
+              href={`/issues/${issue?.id}`}
               className="block"
             >
               <Card padding="md" hover className="group cursor-pointer">
@@ -222,12 +230,12 @@ export default async function MyApplicationsPage({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-slate-900 truncate group-hover:text-primary transition-colors">
-                        {application.issues?.title || "Issue"}
+                        {issue?.title || "Issue"}
                       </h3>
-                      {getStatusBadge(application.status, application.issues?.status || "")}
+                      {getStatusBadge(application.status, issue?.status || "")}
                     </div>
                     <p className="text-sm text-slate-600 mb-2">
-                      {(application.issues?.business_id && businessMap[application.issues.business_id]) || "Business"}
+                      {(issue?.business_id && businessMap[issue.business_id]) || "Business"}
                     </p>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
                       <span className="flex items-center gap-1">
@@ -235,7 +243,7 @@ export default async function MyApplicationsPage({
                         Applied {new Date(application.created_at).toLocaleDateString()}
                       </span>
                       <span className="capitalize">
-                        {application.issues?.compensation_type || "N/A"}
+                        {issue?.compensation_type || "N/A"}
                       </span>
                     </div>
                     {application.cover_message && (
@@ -257,7 +265,7 @@ export default async function MyApplicationsPage({
                 </div>
               </Card>
             </Link>
-          ))}
+          );})}
         </div>
       )}
     </div>
