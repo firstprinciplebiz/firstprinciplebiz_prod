@@ -103,12 +103,14 @@ export default async function DashboardPage() {
 
     if (approvedInterests) {
       // Count issues by status
-      stats.issuesClosed = approvedInterests.filter(
-        (i) => i.issues && (i.issues.status === "completed" || i.issues.status === "closed")
-      ).length;
-      stats.inProgress = approvedInterests.filter(
-        (i) => i.issues && (i.issues.status === "in_progress_accepting" || i.issues.status === "in_progress_full")
-      ).length;
+      stats.issuesClosed = approvedInterests.filter((i) => {
+        const issue = Array.isArray(i.issues) ? i.issues[0] : i.issues;
+        return issue && (issue.status === "completed" || issue.status === "closed");
+      }).length;
+      stats.inProgress = approvedInterests.filter((i) => {
+        const issue = Array.isArray(i.issues) ? i.issues[0] : i.issues;
+        return issue && (issue.status === "in_progress_accepting" || issue.status === "in_progress_full");
+      }).length;
     }
 
     // Fetch recent issues the student is involved in (closed or in progress)
@@ -122,14 +124,17 @@ export default async function DashboardPage() {
 
     if (recentStudentInterests) {
       studentRecentIssues = recentStudentInterests
-        .filter((i) => i.issues)
-        .map((i) => ({
-          id: i.issues!.id,
-          title: i.issues!.title,
-          status: i.issues!.status,
+      .filter((i) => i.issues)
+      .map((i) => {
+        const issue = Array.isArray(i.issues) ? i.issues[0] : i.issues;
+        return {
+          id: issue!.id,
+          title: issue!.title,
+          status: issue!.status,
           interest_status: i.status,
           updated_at: i.updated_at,
-        }));
+        };
+      });
     }
   } else if (role === "business" && profile) {
     // Get all issues for this business with their stats
