@@ -65,9 +65,11 @@ export default function AboutPage() {
               {/* Founder Section */}
               <h2 className="text-2xl font-semibold text-slate-900 mt-10 mb-6">Founder</h2>
               <div className="flex flex-col md:flex-row items-start gap-6 bg-slate-50 rounded-xl p-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
-                  HB
-                </div>
+                <img 
+                  src="/himanshu.jpg" 
+                  alt="Himanshu Bobade" 
+                  className="w-24 h-24 rounded-full object-cover flex-shrink-0 border-2 border-blue-500"
+                />
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-xl font-semibold text-slate-900">Himanshu Bobade</h3>
