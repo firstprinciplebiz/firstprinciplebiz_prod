@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createBrowserClient } from "@supabase/ssr";
-import { ArrowLeft, Send, User, Building2, Briefcase, Check, CheckCheck, Paperclip, X, FileText, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, User, Building2, Briefcase, Check, CheckCheck, Paperclip, X, FileText, Download, Loader2, UserX } from "lucide-react";
 import { Button } from "@/components/ui";
 import { sendMessage, markMessagesAsRead, uploadAttachment, getSignedUrl } from "@/lib/messages/actions";
 
@@ -44,6 +44,7 @@ interface ChatInterfaceProps {
   currentUserId: string;
   context: ConversationContext;
   initialMessages: Message[];
+  isParticipantDeleted?: boolean;
 }
 
 function formatMessageTime(date: Date): string {
@@ -191,6 +192,7 @@ export function ChatInterface({
   currentUserId,
   context,
   initialMessages,
+  isParticipantDeleted = false,
 }: ChatInterfaceProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -504,90 +506,100 @@ export function ChatInterface({
       {/* Input */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200 px-4 py-3">
         <div className="max-w-4xl mx-auto">
-          {error && (
-            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+          {/* Deleted user notice */}
+          {isParticipantDeleted ? (
+            <div className="flex items-center justify-center gap-3 py-4 text-slate-500">
+              <UserX className="w-5 h-5" />
+              <span>This user has deleted their account. You cannot send new messages.</span>
             </div>
-          )}
-          
-          {/* File preview */}
-          {selectedFile && (
-            <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex items-center gap-3">
-                {selectedFile.type.startsWith("image/") ? (
-                  <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                    <img
-                      src={URL.createObjectURL(selectedFile)}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
-                    {selectedFile.name}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {formatFileSize(selectedFile.size)}
-                  </p>
+          ) : (
+            <>
+              {error && (
+                <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {error}
                 </div>
+              )}
+              
+              {/* File preview */}
+              {selectedFile && (
+                <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-3">
+                    {selectedFile.type.startsWith("image/") ? (
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                        <img
+                          src={URL.createObjectURL(selectedFile)}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-6 h-6 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {formatFileSize(selectedFile.size)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleRemoveFile}
+                      className="p-1.5 rounded-full hover:bg-slate-200 transition-colors"
+                      aria-label="Remove file"
+                    >
+                      <X className="w-4 h-4 text-slate-500" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-end gap-3">
+                {/* File upload button */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                />
                 <button
-                  onClick={handleRemoveFile}
-                  className="p-1.5 rounded-full hover:bg-slate-200 transition-colors"
-                  aria-label="Remove file"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isSending || isUploading}
+                  className="p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Attach file"
                 >
-                  <X className="w-4 h-4 text-slate-500" />
+                  <Paperclip className="w-5 h-5 text-slate-500" />
                 </button>
+
+                <div className="flex-1 relative">
+                  <textarea
+                    ref={inputRef}
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={selectedFile ? "Add a message (optional)..." : "Type a message..."}
+                    rows={1}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none max-h-32 overflow-y-auto"
+                    style={{ minHeight: "48px" }}
+                  />
+                </div>
+                <Button
+                  onClick={handleSend}
+                  disabled={(!newMessage.trim() && !selectedFile) || isSending || isUploading}
+                  loading={isSending || isUploading}
+                  className="!px-4 !py-3"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
               </div>
-            </div>
+              <p className="text-xs text-slate-400 mt-2">
+                {isUploading ? "Uploading file..." : "Press Enter to send, Shift+Enter for new line • Max file size: 5MB"}
+              </p>
+            </>
           )}
-
-          <div className="flex items-end gap-3">
-            {/* File upload button */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              className="hidden"
-              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isSending || isUploading}
-              className="p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Attach file"
-            >
-              <Paperclip className="w-5 h-5 text-slate-500" />
-            </button>
-
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={selectedFile ? "Add a message (optional)..." : "Type a message..."}
-                rows={1}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none max-h-32 overflow-y-auto"
-                style={{ minHeight: "48px" }}
-              />
-            </div>
-            <Button
-              onClick={handleSend}
-              disabled={(!newMessage.trim() && !selectedFile) || isSending || isUploading}
-              loading={isSending || isUploading}
-              className="!px-4 !py-3"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </div>
-          <p className="text-xs text-slate-400 mt-2">
-            {isUploading ? "Uploading file..." : "Press Enter to send, Shift+Enter for new line • Max file size: 5MB"}
-          </p>
         </div>
       </div>
     </div>

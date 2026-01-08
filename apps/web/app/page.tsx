@@ -312,9 +312,15 @@ export default function HomePage() {
               <span className="font-semibold text-slate-900">FirstPrincipleBiz</span>
             </Link>
 
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-6">
               <Link href="/about" className="text-slate-600 hover:text-slate-900">
                 About
+              </Link>
+              <Link href="/privacy" className="text-slate-600 hover:text-slate-900">
+                Privacy
+              </Link>
+              <Link href="/terms" className="text-slate-600 hover:text-slate-900">
+                Terms
               </Link>
             </div>
           </div>

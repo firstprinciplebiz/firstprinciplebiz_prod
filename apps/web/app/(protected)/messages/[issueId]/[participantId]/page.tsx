@@ -36,6 +36,15 @@ export default async function ChatPage({
     console.error("Error loading messages:", error);
   }
 
+  // Check if participant account is deleted
+  const { data: participantUser } = await supabase
+    .from("users")
+    .select("deleted_at")
+    .eq("id", participantId)
+    .single();
+
+  const isParticipantDeleted = !!participantUser?.deleted_at;
+
   // Mark messages as read
   await markMessagesAsRead(issueId, participantId);
 
@@ -46,6 +55,7 @@ export default async function ChatPage({
       currentUserId={user.id}
       context={context}
       initialMessages={messages}
+      isParticipantDeleted={isParticipantDeleted}
     />
   );
 }

@@ -42,6 +42,7 @@ export default function StudentSignUpPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const {
     register,
@@ -151,10 +152,39 @@ export default function StudentSignUpPage() {
           </p>
         </div>
 
+        {/* Terms and Conditions Checkbox */}
+        <div className="flex items-start gap-3 mb-6">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className="mt-1 w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary"
+          />
+          <label htmlFor="terms" className="text-sm text-slate-600">
+            I agree to the{" "}
+            <Link 
+              href="/terms" 
+              target="_blank" 
+              className="text-primary hover:underline font-medium"
+            >
+              Terms and Conditions
+            </Link>{" "}
+            and{" "}
+            <Link 
+              href="/privacy" 
+              target="_blank" 
+              className="text-primary hover:underline font-medium"
+            >
+              Privacy Policy
+            </Link>
+          </label>
+        </div>
+
         {/* Google Sign Up */}
         <button
           onClick={handleGoogleSignUp}
-          disabled={isGoogleLoading}
+          disabled={isGoogleLoading || !agreedToTerms}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isGoogleLoading ? (
@@ -241,16 +271,10 @@ export default function StudentSignUpPage() {
             {errors.confirmPassword && <p className="mt-1.5 text-sm text-red-600">{errors.confirmPassword.message}</p>}
           </div>
 
-          <Button type="submit" isLoading={isLoading} className="w-full">
+          <Button type="submit" isLoading={isLoading} disabled={!agreedToTerms} className="w-full">
             Create Student Account
           </Button>
         </form>
-
-        <p className="text-center text-sm text-slate-600 mt-6">
-          By signing up, you agree to our{" "}
-          <Link href="/terms" className="text-primary hover:underline">Terms</Link> and{" "}
-          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-        </p>
       </div>
 
       <div className="text-center mt-6 space-y-2">

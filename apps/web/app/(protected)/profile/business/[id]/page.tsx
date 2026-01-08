@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, MapPin, Calendar, Briefcase, Globe, FileText, ArrowRight } from "lucide-react";
+import { Building2, MapPin, Calendar, Briefcase, Globe, FileText, ArrowRight, UserX } from "lucide-react";
 import { Card, Badge, GoBackButton } from "@/components/ui";
 
 export default async function BusinessProfilePage({
@@ -47,6 +47,15 @@ export default async function BusinessProfilePage({
     notFound();
   }
 
+  // Check if the user account is deleted
+  const { data: profileUser } = await supabase
+    .from("users")
+    .select("deleted_at")
+    .eq("id", profile.user_id)
+    .single();
+
+  const isDeleted = !!profileUser?.deleted_at;
+
   // Fetch all issues posted by this business
   const { data: businessIssues } = await supabase
     .from("issues")
@@ -83,6 +92,21 @@ export default async function BusinessProfilePage({
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <GoBackButton className="mb-6" />
+
+      {/* Deleted Account Banner */}
+      {isDeleted && (
+        <Card className="mb-6 border-red-200 bg-red-50">
+          <div className="flex items-center gap-3 p-4">
+            <UserX className="w-6 h-6 text-red-600 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-red-800">Account Deleted</h3>
+              <p className="text-red-700 text-sm">
+                This business has deleted their account. Some information may no longer be available.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Profile Header */}
       <Card padding="lg" className="mb-6">

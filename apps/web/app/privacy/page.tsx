@@ -133,9 +133,50 @@ export default function PrivacyPolicyPage() {
                 </ul>
               </section>
 
+              {/* Account Deletion */}
+              <section>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-4">7. Account Deletion</h2>
+                <p className="text-slate-600 mb-4">
+                  You may delete your account at any time through your account settings.
+                  When you delete your account:
+                </p>
+                
+                <h3 className="text-lg font-medium text-slate-800 mb-2">Permanently Deleted:</h3>
+                <ul className="list-disc list-inside text-slate-600 space-y-1 mb-4">
+                  <li>Your email address</li>
+                  <li>Your phone number</li>
+                  <li>Your date of birth (students)</li>
+                  <li>Your business address (businesses)</li>
+                  <li>Your profile photos</li>
+                </ul>
+
+                <h3 className="text-lg font-medium text-slate-800 mb-2">Retained for Platform Integrity:</h3>
+                <ul className="list-disc list-inside text-slate-600 space-y-1 mb-4">
+                  <li>Your name (displayed in past messages and interactions)</li>
+                  <li>Messages you sent (remain visible to recipients)</li>
+                  <li>Files shared in conversations (remain accessible to recipients)</li>
+                  <li>Your application or issue history</li>
+                </ul>
+
+                <h3 className="text-lg font-medium text-slate-800 mb-2">Automatic Actions:</h3>
+                <ul className="list-disc list-inside text-slate-600 space-y-1 mb-4">
+                  <li><strong>For students:</strong> All pending applications will be automatically rejected</li>
+                  <li><strong>For businesses:</strong> All open issues will be automatically closed</li>
+                  <li>Chat functionality will be disabled for existing conversations</li>
+                </ul>
+
+                <p className="text-slate-600">
+                  To delete your account, go to{" "}
+                  <Link href="/settings/delete-account" className="text-primary hover:underline">
+                    Settings → Delete Account
+                  </Link>
+                  {" "}while logged in.
+                </p>
+              </section>
+
               {/* Children's Privacy */}
               <section>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-4">7. Children&apos;s Privacy</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-4">8. Children&apos;s Privacy</h2>
                 <p className="text-slate-600">
                   Our service is not intended for users under 18 years of age. We do not knowingly 
                   collect information from children under 18.
@@ -144,7 +185,7 @@ export default function PrivacyPolicyPage() {
 
               {/* Changes to Policy */}
               <section>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-4">8. Changes to This Policy</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-4">9. Changes to This Policy</h2>
                 <p className="text-slate-600">
                   We may update this Privacy Policy from time to time. We will notify you of any 
                   changes by posting the new policy on this page and updating the &quot;Last updated&quot; date.
@@ -153,7 +194,7 @@ export default function PrivacyPolicyPage() {
 
               {/* Contact */}
               <section>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-4">9. Contact Us</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-4">10. Contact Us</h2>
                 <p className="text-slate-600">
                   If you have questions about this Privacy Policy, please contact us at:{" "}
                   <a 
@@ -181,10 +222,16 @@ export default function PrivacyPolicyPage() {
               />
               <span className="font-semibold text-slate-900">FirstPrincipleBiz</span>
             </Link>
+            <div className="flex items-center gap-4 text-sm text-slate-600">
+              <Link href="/privacy" className="hover:text-slate-900">Privacy Policy</Link>
+              <span>•</span>
+              <Link href="/terms" className="hover:text-slate-900">Terms</Link>
+            </div>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
 
