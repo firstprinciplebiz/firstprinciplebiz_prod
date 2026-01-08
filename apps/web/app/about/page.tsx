@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, Mail, Linkedin } from "lucide-react";
 
 export default function AboutPage() {
   return (
@@ -69,12 +69,25 @@ export default function AboutPage() {
                   HB
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Himanshu Bobade</h3>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-semibold text-slate-900">Himanshu Bobade</h3>
+                    <a 
+                      href="https://www.linkedin.com/in/himanshu-bobade/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      title="Connect on LinkedIn"
+                    >
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                  </div>
                   <p className="text-slate-600 mb-4">
-                    Founder of FirstPrincipleBiz, Himanshu started this initiative with a simple belief: 
-                    practical experience should not be a luxury reserved for those with connections. 
-                    By creating this platform, he aims to democratize access to real business experience 
-                    for students everywhere.
+                    A data enthusiast with experience as a Data Engineer, Himanshu has always been 
+                    passionate about leveraging technology to create meaningful impact. His drive to 
+                    help businesses grow and build communities that solve real problems led to the 
+                    creation of FirstPrincipleBiz. He believes that connecting aspiring students with 
+                    local businesses creates a powerful ecosystem where knowledge meets opportunity, 
+                    and everyone grows together.
                   </p>
                 </div>
               </div>
