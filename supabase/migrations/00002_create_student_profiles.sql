@@ -59,3 +59,5 @@ CREATE TRIGGER update_student_profiles_updated_at
 
 
 
+
+

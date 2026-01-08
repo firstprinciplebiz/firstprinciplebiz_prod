@@ -23,7 +23,9 @@
         "backgroundColor": "#2563EB"
       },
       "package": "com.firstprinciplebiz.app",
-      "googleServicesFile": "./google-services.json"
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -61,11 +63,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "b7c0cb34-1f21-47e1-903c-b8ed3bbf41d0"
       }
-    }
+    },
+    "owner": "firstprinciplebiz"
   }
 }
-
-
-

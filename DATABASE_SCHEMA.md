@@ -378,3 +378,5 @@ Enable realtime for these tables in Supabase Dashboard → Database → Replicat
 
 
 
+
+
