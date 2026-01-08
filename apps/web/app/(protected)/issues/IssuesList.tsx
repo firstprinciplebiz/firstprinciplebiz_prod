@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search, Filter, X, ChevronLeft, ChevronRight, Building2, Clock, DollarSign, Briefcase, CheckCircle } from "lucide-react";
 import { Card, Badge, Button, Input } from "@/components/ui";
-import { EXPERTISE_AREAS, COMPENSATION_TYPES } from "@repo/shared";
+import { EXPERTISE_AREAS, COMPENSATION_TYPES } from "shared";
 
 interface Issue {
   id: string;

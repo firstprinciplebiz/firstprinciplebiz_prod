@@ -3,8 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { issueSchema } from "@repo/shared";
-import type { IssueInput } from "@repo/shared";
+import { issueSchema } from "shared";
+import type { IssueInput } from "shared";
 
 export async function createIssue(formData: IssueInput) {
   const supabase = await createClient();
