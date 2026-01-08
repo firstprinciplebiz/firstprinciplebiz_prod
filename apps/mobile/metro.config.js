@@ -1,10 +1,11 @@
+// @ts-check
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
-const path = require("path");
 
-// Ensure proper path handling for Windows
-const projectRoot = __dirname;
-
-const config = getDefaultConfig(projectRoot);
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname, {
+  // Necessary for NativeWind
+  isCSSEnabled: true,
+});
 
 module.exports = withNativeWind(config, { input: "./global.css" });
