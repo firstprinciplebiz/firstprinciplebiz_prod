@@ -8,6 +8,7 @@ export { MultiSelect } from "./MultiSelect";
 export { AvatarUpload } from "./AvatarUpload";
 export { GoBackButton } from "./GoBackButton";
 export { PhoneInput } from "./PhoneInput";
+export { LoadingSpinner } from "./LoadingSpinner";
 
 
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
+import { NavigationProgress } from "@/components/layout/NavigationProgress";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -34,6 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={outfit.variable}>
       <body className="font-sans antialiased bg-slate-50 text-slate-900" suppressHydrationWarning>
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
       </body>
     </html>
