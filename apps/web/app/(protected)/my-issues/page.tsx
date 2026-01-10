@@ -89,13 +89,13 @@ export default async function MyIssuesPage() {
       case "open":
         return "Open";
       case "in_progress_accepting":
-        return "In Progress (Accepting)";
+        return "Accepting more candidates";
       case "in_progress_full":
-        return "In Progress (Full)";
+        return "Fully Staffed";
       case "completed":
         return "Completed";
       case "closed":
-        return "Closed";
+        return "Cancelled";
       default:
         return status;
     }

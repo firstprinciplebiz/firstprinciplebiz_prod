@@ -7,6 +7,7 @@ export { Textarea } from "./Textarea";
 export { MultiSelect } from "./MultiSelect";
 export { AvatarUpload } from "./AvatarUpload";
 export { GoBackButton } from "./GoBackButton";
+export { PhoneInput } from "./PhoneInput";
 
 
 

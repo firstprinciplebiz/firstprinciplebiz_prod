@@ -247,24 +247,34 @@ export function IssuesList({
         </div>
 
         {/* Issues List */}
-        {issues.length === 0 ? (
-          <Card padding="lg" className="text-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <Briefcase className="w-8 h-8 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No issues found</h3>
-            <p className="text-slate-600">
-              {hasActiveFilters
-                ? "Try adjusting your filters to find more issues."
-                : "Check back later for new opportunities!"}
-            </p>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {issues.map((issue) => {
-              const hasApplied = appliedIssueIds.includes(issue.id);
-              
-              return (
+        {/* Filter out issues the student has already applied to */}
+        {(() => {
+          const filteredIssues = issues.filter((issue) => !appliedIssueIds.includes(issue.id));
+          
+          if (filteredIssues.length === 0) {
+            return (
+              <Card padding="lg" className="text-center">
+                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                  <Briefcase className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No issues found</h3>
+                <p className="text-slate-600">
+                  {hasActiveFilters
+                    ? "Try adjusting your filters to find more issues."
+                    : appliedIssueIds.length > 0
+                    ? "You've already applied to all available issues. Check back later for new opportunities!"
+                    : "Check back later for new opportunities!"}
+                </p>
+              </Card>
+            );
+          }
+          
+          return (
+            <div className="space-y-4">
+              {filteredIssues.map((issue) => {
+                const hasApplied = appliedIssueIds.includes(issue.id);
+                
+                return (
                 <Link key={issue.id} href={`/issues/${issue.id}`}>
                   <Card padding="lg" hover className="group cursor-pointer">
                     <div className="flex gap-4">
@@ -354,8 +364,9 @@ export function IssuesList({
                 </Link>
               );
             })}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         {/* Pagination */}
         {totalPages > 1 && (

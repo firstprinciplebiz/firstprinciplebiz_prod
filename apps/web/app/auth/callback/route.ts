@@ -15,21 +15,36 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Check if user record exists
+        // Check if user record exists and get role
         const { data: userData } = await supabase
           .from("users")
-          .select("profile_completed")
+          .select("profile_completed, role")
           .eq("id", user.id)
           .single();
+        
+        // Get role from user metadata (set during signup) or from users table
+        const role = userData?.role || user.user_metadata?.role;
         
         // Determine redirect URL
         let redirectUrl = next;
         
-        if (!userData) {
-          // New user - will be handled by onboarding page
-          redirectUrl = "/onboarding";
-        } else if (!userData.profile_completed) {
-          redirectUrl = "/onboarding";
+        if (!userData || !userData.profile_completed) {
+          // New user or incomplete profile - redirect to role-specific onboarding
+          if (role === "student") {
+            redirectUrl = "/onboarding/student";
+          } else if (role === "business") {
+            redirectUrl = "/onboarding/business";
+          } else {
+            // Fallback: check if next param includes the role
+            if (next.includes("/student")) {
+              redirectUrl = "/onboarding/student";
+            } else if (next.includes("/business")) {
+              redirectUrl = "/onboarding/business";
+            } else {
+              // Default to student if role can't be determined
+              redirectUrl = "/onboarding/student";
+            }
+          }
         }
         
         const forwardedHost = request.headers.get("x-forwarded-host");
@@ -61,8 +76,3 @@ export async function GET(request: Request) {
   // Return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }
-
-
-
-
-

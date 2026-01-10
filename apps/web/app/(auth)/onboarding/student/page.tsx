@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GraduationCap, User, Phone, Building, BookOpen, Briefcase, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui";
+import { GraduationCap, User, BookOpen, Briefcase, CheckCircle2 } from "lucide-react";
+import { Button, PhoneInput } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { studentProfileSchema, type StudentProfileInput } from "shared/validation";
 import { DEGREE_LEVELS, EXPERTISE_AREAS } from "shared/constants";
@@ -14,6 +14,7 @@ export default function StudentOnboardingPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
 
   const {
@@ -22,6 +23,8 @@ export default function StudentOnboardingPage() {
     formState: { errors },
     watch,
     setValue,
+    trigger,
+    getValues,
   } = useForm<StudentProfileInput>({
     resolver: zodResolver(studentProfileSchema),
     defaultValues: {
@@ -35,6 +38,8 @@ export default function StudentOnboardingPage() {
 
   const selectedInterests = watch("areas_of_interest") || [];
   const selectedExpertise = watch("expertise") || [];
+  const openToPaid = watch("open_to_paid");
+  const openToVoluntary = watch("open_to_voluntary");
 
   const toggleInterest = (interest: string) => {
     const current = selectedInterests;
@@ -54,7 +59,123 @@ export default function StudentOnboardingPage() {
     }
   };
 
+  // Handle phone input changes
+  const handlePhoneChange = useCallback((value: string) => {
+    setValue("phone", value);
+  }, [setValue]);
+
+  // Validate step 1 before proceeding
+  const validateStep1 = async () => {
+    setStepError(null);
+    const values = getValues();
+    
+    // Check full name
+    if (!values.full_name || values.full_name.trim().length < 2) {
+      setStepError("Full name is required (minimum 2 characters)");
+      return false;
+    }
+    
+    // Check phone
+    if (!values.phone || values.phone.length < 10) {
+      setStepError("Phone number is required (10 digits)");
+      return false;
+    }
+    
+    // Check date of birth
+    if (!values.date_of_birth) {
+      setStepError("Date of birth is required");
+      return false;
+    }
+    
+    // Check age >= 18
+    const dob = new Date(values.date_of_birth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
+    if (age < 18) {
+      setStepError("You must be at least 18 years old to use this platform");
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Validate step 2 before proceeding
+  const validateStep2 = async () => {
+    setStepError(null);
+    const values = getValues();
+    
+    if (!values.university_name || values.university_name.trim().length < 2) {
+      setStepError("University name is required");
+      return false;
+    }
+    
+    if (!values.degree_name || values.degree_name.trim().length < 2) {
+      setStepError("Degree name is required");
+      return false;
+    }
+    
+    if (!values.major || values.major.trim().length < 2) {
+      setStepError("Major is required");
+      return false;
+    }
+    
+    if (!values.degree_level) {
+      setStepError("Degree level is required");
+      return false;
+    }
+    
+    if (!values.bio || values.bio.trim().length < 25) {
+      setStepError("Bio is required (minimum 25 characters)");
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Validate step 3 before submitting
+  const validateStep3 = () => {
+    setStepError(null);
+    const values = getValues();
+    
+    if (!values.areas_of_interest || values.areas_of_interest.length === 0) {
+      setStepError("Please select at least one area of interest");
+      return false;
+    }
+    
+    if (!values.expertise || values.expertise.length === 0) {
+      setStepError("Please select at least one expertise area");
+      return false;
+    }
+    
+    if (!values.open_to_paid && !values.open_to_voluntary) {
+      setStepError("Please select at least one work preference");
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleNextStep = async (nextStep: number) => {
+    if (step === 1) {
+      const isValid = await validateStep1();
+      if (!isValid) return;
+    } else if (step === 2) {
+      const isValid = await validateStep2();
+      if (!isValid) return;
+    }
+    setStepError(null);
+    setStep(nextStep);
+  };
+
   const onSubmit = async (data: StudentProfileInput) => {
+    // Validate step 3 first
+    if (!validateStep3()) return;
+
     setIsLoading(true);
     setError(null);
 
@@ -122,10 +243,15 @@ export default function StudentOnboardingPage() {
           ))}
         </div>
 
-        {/* Error message */}
+        {/* Error messages */}
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
             {error}
+          </div>
+        )}
+        {stepError && (
+          <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm">
+            {stepError}
           </div>
         )}
 
@@ -138,49 +264,50 @@ export default function StudentOnboardingPage() {
                 Basic Information
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    {...register("full_name")}
-                    placeholder="John Doe"
-                    className={`input ${errors.full_name ? "border-red-500" : ""}`}
-                  />
-                  {errors.full_name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.full_name.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    {...register("phone")}
-                    placeholder="+1234567890"
-                    className={`input ${errors.phone ? "border-red-500" : ""}`}
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register("full_name")}
+                  placeholder="John Doe"
+                  className={`input ${errors.full_name ? "border-red-500" : ""}`}
+                />
+                {errors.full_name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.full_name.message}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Date of Birth
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <PhoneInput
+                  value={watch("phone") || ""}
+                  onChange={handlePhoneChange}
+                  error={!!errors.phone}
+                  placeholder="1234567890"
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Date of Birth <span className="text-red-500">*</span>
+                  <span className="text-slate-500 font-normal"> (Must be 18+)</span>
                 </label>
                 <input
                   {...register("date_of_birth")}
                   type="date"
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                   className="input"
                 />
               </div>
 
               <div className="flex justify-end">
-                <Button type="button" onClick={() => setStep(2)}>
+                <Button type="button" onClick={() => handleNextStep(2)}>
                   Next Step
                 </Button>
               </div>
@@ -197,7 +324,7 @@ export default function StudentOnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  University Name *
+                  University Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register("university_name")}
@@ -212,7 +339,7 @@ export default function StudentOnboardingPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Degree Name *
+                    Degree Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     {...register("degree_name")}
@@ -226,7 +353,7 @@ export default function StudentOnboardingPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Major *
+                    Major <span className="text-red-500">*</span>
                   </label>
                   <input
                     {...register("major")}
@@ -241,7 +368,7 @@ export default function StudentOnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Degree Level *
+                  Degree Level <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register("degree_level")}
@@ -257,7 +384,8 @@ export default function StudentOnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Bio (Optional)
+                  Bio <span className="text-red-500">*</span>
+                  <span className="text-slate-500 font-normal"> (Minimum 25 characters)</span>
                 </label>
                 <textarea
                   {...register("bio")}
@@ -265,13 +393,16 @@ export default function StudentOnboardingPage() {
                   placeholder="Tell us about yourself, your interests, and what you're looking for..."
                   className="input resize-none"
                 />
+                <p className="mt-1 text-xs text-slate-500">
+                  {(watch("bio") || "").length}/25 characters minimum
+                </p>
               </div>
 
               <div className="flex justify-between">
                 <Button type="button" variant="secondary" onClick={() => setStep(1)}>
                   Previous
                 </Button>
-                <Button type="button" onClick={() => setStep(3)}>
+                <Button type="button" onClick={() => handleNextStep(3)}>
                   Next Step
                 </Button>
               </div>
@@ -288,10 +419,11 @@ export default function StudentOnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-3">
-                  Areas of Interest
+                  Areas of Interest <span className="text-red-500">*</span>
+                  <span className="text-slate-500 font-normal"> (Select at least one)</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {EXPERTISE_AREAS.slice(0, 15).map((area) => (
+                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 border border-slate-200 rounded-xl">
+                  {EXPERTISE_AREAS.map((area) => (
                     <button
                       key={area}
                       type="button"
@@ -306,14 +438,18 @@ export default function StudentOnboardingPage() {
                     </button>
                   ))}
                 </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  {selectedInterests.length} selected
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-3">
-                  Your Expertise
+                  Your Expertise <span className="text-red-500">*</span>
+                  <span className="text-slate-500 font-normal"> (Select at least one)</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {EXPERTISE_AREAS.slice(0, 15).map((exp) => (
+                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 border border-slate-200 rounded-xl">
+                  {EXPERTISE_AREAS.map((exp) => (
                     <button
                       key={exp}
                       type="button"
@@ -328,11 +464,15 @@ export default function StudentOnboardingPage() {
                     </button>
                   ))}
                 </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  {selectedExpertise.length} selected
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-3">
-                  Work Preferences
+                  Work Preferences <span className="text-red-500">*</span>
+                  <span className="text-slate-500 font-normal"> (Select at least one)</span>
                 </label>
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -352,6 +492,9 @@ export default function StudentOnboardingPage() {
                     <span className="text-slate-700">I&apos;m open to voluntary/unpaid work</span>
                   </label>
                 </div>
+                {!openToPaid && !openToVoluntary && (
+                  <p className="mt-2 text-sm text-amber-600">Please select at least one preference</p>
+                )}
               </div>
 
               <div className="flex justify-between pt-4">
@@ -370,15 +513,3 @@ export default function StudentOnboardingPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-

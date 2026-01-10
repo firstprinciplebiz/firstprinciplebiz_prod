@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, AlertTriangle, Trash2, Check, X, Loader2 } from "lucide-react";
 import { Button, Card } from "@/components/ui";
-import { deleteAccount } from "@/lib/auth/delete-account";
 
 export default function DeleteAccountPage() {
   const router = useRouter();
@@ -23,16 +22,29 @@ export default function DeleteAccountPage() {
     setIsDeleting(true);
     setError(null);
 
-    const result = await deleteAccount();
+    try {
+      const response = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    if (result.error) {
-      setError(result.error);
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        setError(result.error || "Failed to delete account");
+        setIsDeleting(false);
+        return;
+      }
+
+      // Redirect to home page after successful deletion
+      router.push("/");
+    } catch (err) {
+      console.error("Delete error:", err);
+      setError("An unexpected error occurred. Please try again.");
       setIsDeleting(false);
-      return;
     }
-
-    // Redirect to home page after successful deletion
-    router.push("/?deleted=true");
   };
 
   return (
@@ -213,4 +225,5 @@ export default function DeleteAccountPage() {
     </div>
   );
 }
+
 

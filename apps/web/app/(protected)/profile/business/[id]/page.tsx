@@ -77,13 +77,13 @@ export default async function BusinessProfilePage({
       case "open":
         return { label: "Open", className: "bg-emerald-100 text-emerald-700" };
       case "in_progress_accepting":
-        return { label: "In Progress", className: "bg-blue-100 text-blue-700" };
+        return { label: "Accepting more candidates", className: "bg-blue-100 text-blue-700" };
       case "in_progress_full":
         return { label: "Fully Staffed", className: "bg-blue-100 text-blue-700" };
       case "completed":
         return { label: "Completed", className: "bg-green-100 text-green-700" };
       case "closed":
-        return { label: "Closed", className: "bg-slate-100 text-slate-600" };
+        return { label: "Cancelled", className: "bg-slate-100 text-slate-600" };
       default:
         return { label: status, className: "bg-slate-100 text-slate-600" };
     }

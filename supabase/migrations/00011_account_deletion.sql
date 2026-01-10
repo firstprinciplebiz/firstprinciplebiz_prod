@@ -72,3 +72,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permission to authenticated users (they can only delete their own account via application)
 GRANT EXECUTE ON FUNCTION soft_delete_user(UUID) TO authenticated;
 
+
