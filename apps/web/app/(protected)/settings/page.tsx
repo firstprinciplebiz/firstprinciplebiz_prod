@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Settings, Shield, FileText, UserX, ChevronRight } from "lucide-react";
+import { Settings, Shield, FileText, UserX, ChevronRight, Gift, Copy, Users } from "lucide-react";
 import { Card } from "@/components/ui";
+import { CopyReferralCode } from "./CopyReferralCode";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -10,6 +11,58 @@ export default async function SettingsPage() {
 
   if (!user) {
     redirect("/login");
+  }
+
+  // Get user role and profile
+  const { data: userData } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  let referralCode: string | null = null;
+  let referralCount = 0;
+
+  if (userData?.role === "student") {
+    const { data: profile } = await supabase
+      .from("student_profiles")
+      .select("referral_code")
+      .eq("user_id", user.id)
+      .single();
+    referralCode = profile?.referral_code || null;
+
+    // Count how many users used this referral code
+    if (referralCode) {
+      const { count: studentCount } = await supabase
+        .from("student_profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("referred_by_code", referralCode);
+      const { count: businessCount } = await supabase
+        .from("business_profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("referred_by_code", referralCode);
+      referralCount = (studentCount || 0) + (businessCount || 0);
+    }
+  } else if (userData?.role === "business") {
+    const { data: profile } = await supabase
+      .from("business_profiles")
+      .select("referral_code")
+      .eq("user_id", user.id)
+      .single();
+    referralCode = profile?.referral_code || null;
+
+    // Count how many users used this referral code
+    if (referralCode) {
+      const { count: studentCount } = await supabase
+        .from("student_profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("referred_by_code", referralCode);
+      const { count: businessCount } = await supabase
+        .from("business_profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("referred_by_code", referralCode);
+      referralCount = (studentCount || 0) + (businessCount || 0);
+    }
   }
 
   const settingsLinks = [
@@ -48,6 +101,34 @@ export default async function SettingsPage() {
           Manage your account settings and preferences
         </p>
       </div>
+
+      {/* Referral Code Section */}
+      {referralCode && (
+        <Card padding="lg" className="mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <Gift className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Your Referral Code</h2>
+              <p className="text-sm text-slate-600 mb-4">
+                Share this code with friends to invite them to FirstPrincipleBiz
+              </p>
+              
+              <CopyReferralCode code={referralCode} />
+              
+              {/* Referral Stats */}
+              <div className="mt-4 flex items-center gap-2 text-sm">
+                <Users className="w-4 h-4 text-slate-400" />
+                <span className="text-slate-600">
+                  <span className="font-semibold text-primary">{referralCount}</span>
+                  {referralCount === 1 ? " person" : " people"} joined using your code
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Settings Links */}
       <Card padding="none">
@@ -92,5 +173,3 @@ export default async function SettingsPage() {
     </div>
   );
 }
-
-

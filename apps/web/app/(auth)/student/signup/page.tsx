@@ -74,6 +74,14 @@ export default function StudentSignUpPage() {
       }
 
       if (authData.user) {
+        // Create user record in public.users table with role
+        await supabase.from("users").upsert({
+          id: authData.user.id,
+          email: authData.user.email,
+          role: "student",
+          profile_completed: false,
+        }, { onConflict: "id" });
+        
         setSuccess(true);
       }
     } catch (err) {

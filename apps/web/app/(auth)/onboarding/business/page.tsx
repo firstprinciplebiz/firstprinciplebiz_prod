@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, User, Briefcase, CheckCircle2, MapPin } from "lucide-react";
-import { Button, PhoneInput } from "@/components/ui";
+import { Building2, User, Briefcase, CheckCircle2, MapPin, Gift } from "lucide-react";
+import { Button, PhoneInput, AvatarUpload } from "@/components/ui";
+import { isValidPhoneNumber } from "@/components/ui/PhoneInput";
 import { createClient } from "@/lib/supabase/client";
 import { businessProfileSchema, type BusinessProfileInput } from "shared/validation";
 import { INDUSTRIES, EXPERTISE_AREAS } from "shared/constants";
@@ -16,6 +17,19 @@ export default function BusinessOnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [stepError, setStepError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get user ID on mount for avatar upload
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    getUser();
+  }, []);
 
   const {
     register,
@@ -59,9 +73,9 @@ export default function BusinessOnboardingPage() {
       return false;
     }
     
-    // Check phone
-    if (!values.phone || values.phone.length < 10) {
-      setStepError("Phone number is required (10 digits)");
+    // Check phone - must be exactly 10 digits after country code
+    if (!values.phone || !isValidPhoneNumber(values.phone)) {
+      setStepError("Phone number is required (exactly 10 digits)");
       return false;
     }
     
@@ -141,10 +155,17 @@ export default function BusinessOnboardingPage() {
         return;
       }
 
+      // Generate a unique referral code for this user
+      const { data: referralData } = await supabase.rpc('generate_referral_code', { prefix: 'FPB' });
+      const newReferralCode = referralData || `FPB-${user.id.slice(0, 6).toUpperCase()}`;
+
       // Create business profile
       const { error: profileError } = await supabase.from("business_profiles").insert({
         user_id: user.id,
         ...data,
+        avatar_url: avatarUrl,
+        referral_code: newReferralCode,
+        referred_by_code: referralCode || null,
       });
 
       if (profileError) {
@@ -217,35 +238,33 @@ export default function BusinessOnboardingPage() {
                 Owner & Business Information
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Owner Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    {...register("owner_name")}
-                    placeholder="John Smith"
-                    className={`input ${errors.owner_name ? "border-red-500" : ""}`}
-                  />
-                  {errors.owner_name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.owner_name.message}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Owner Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register("owner_name")}
+                  placeholder="John Smith"
+                  className={`input ${errors.owner_name ? "border-red-500" : ""}`}
+                />
+                {errors.owner_name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.owner_name.message}</p>
+                )}
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <PhoneInput
-                    value={watch("phone") || ""}
-                    onChange={handlePhoneChange}
-                    error={!!errors.phone}
-                    placeholder="1234567890"
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <PhoneInput
+                  value={watch("phone") || ""}
+                  onChange={handlePhoneChange}
+                  error={!!errors.phone}
+                  placeholder="1234567890"
+                />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                )}
               </div>
 
               <div>
@@ -316,6 +335,25 @@ export default function BusinessOnboardingPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <Gift className="w-4 h-4 inline mr-1" />
+                  Referral Code
+                  <span className="text-slate-500 font-normal"> (Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="Enter referral code (e.g., FPB-ABC123)"
+                  className="input"
+                  maxLength={12}
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  If someone referred you, enter their code here
+                </p>
+              </div>
+
               <div className="flex justify-end">
                 <Button type="button" onClick={handleNextStep}>
                   Next Step
@@ -329,8 +367,25 @@ export default function BusinessOnboardingPage() {
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                 <Briefcase className="w-5 h-5" />
-                About Your Business
+                About Your Business & Logo
               </h2>
+
+              {/* Profile/Logo Upload */}
+              {userId && (
+                <div className="flex flex-col items-center py-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-3 text-center">
+                    Business Logo / Photo
+                    <span className="text-slate-500 font-normal"> (Optional)</span>
+                  </label>
+                  <AvatarUpload
+                    currentAvatarUrl={avatarUrl}
+                    onUploadComplete={(url) => setAvatarUrl(url)}
+                    onRemove={() => setAvatarUrl(null)}
+                    userId={userId}
+                    size="lg"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">

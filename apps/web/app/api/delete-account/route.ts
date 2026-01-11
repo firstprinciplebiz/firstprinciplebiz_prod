@@ -153,13 +153,17 @@ export async function POST(request: Request) {
       })
       .eq("id", userId);
 
-    // Delete from auth.users using admin API - this prevents login
-    const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(userId);
+    // Update auth.users email to prevent login with original email
+    // We use updateUserById instead of deleteUser to avoid CASCADE deletion
+    const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(userId, {
+      email: `deleted_${userId}@deleted.local`,
+      email_confirm: true,
+      password: crypto.randomUUID(), // Random password they can't know
+    });
 
-    if (deleteAuthError) {
-      console.error("Error deleting auth user:", deleteAuthError);
-      // Even if auth deletion fails, the user data is anonymized
-      // The user might still exist in auth but won't have valid profile data
+    if (updateAuthError) {
+      console.error("Error updating auth user:", updateAuthError);
+      // Even if auth update fails, the user data in public.users is marked as deleted
     }
 
     // Sign out the user from current session (the session will be invalidated anyway)
@@ -175,4 +179,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 
