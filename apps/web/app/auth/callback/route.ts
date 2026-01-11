@@ -15,24 +15,40 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Check if user record exists and get role
+        // Get role from user metadata (set during signup)
+        const role = user.user_metadata?.role;
+        
+        // Check if user record exists
         const { data: userData } = await supabase
           .from("users")
           .select("profile_completed, role")
           .eq("id", user.id)
           .single();
         
-        // Get role from user metadata (set during signup) or from users table
-        const role = userData?.role || user.user_metadata?.role;
+        // If user record doesn't exist, create it now (after email verification)
+        if (!userData) {
+          await supabase.from("users").insert({
+            id: user.id,
+            email: user.email,
+            role: role || "student",
+            profile_completed: false,
+          });
+        }
+        
+        // Use role from users table if exists, otherwise from metadata
+        const userRole = userData?.role || role;
         
         // Determine redirect URL
         let redirectUrl = next;
         
-        if (!userData || !userData.profile_completed) {
+        // Check profile_completed from the latest userData query or assume false for new users
+        const profileCompleted = userData?.profile_completed || false;
+        
+        if (!profileCompleted) {
           // New user or incomplete profile - redirect to role-specific onboarding
-          if (role === "student") {
+          if (userRole === "student") {
             redirectUrl = "/onboarding/student";
-          } else if (role === "business") {
+          } else if (userRole === "business") {
             redirectUrl = "/onboarding/business";
           } else {
             // Fallback: check if next param includes the role
