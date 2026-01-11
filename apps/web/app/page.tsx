@@ -55,6 +55,13 @@ export default function HomePage() {
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
+            {/* Brand name visible only on small screens (when navbar hides it) */}
+            <div className="sm:hidden mb-4">
+              <span className="font-bold text-2xl text-slate-900">
+                FirstPrinciple<span className="text-primary">Biz</span>
+              </span>
+            </div>
+            
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
               Bridging Academia and Real Business
