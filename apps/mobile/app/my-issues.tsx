@@ -117,10 +117,19 @@ export default function MyIssuesScreen() {
     try {
       const { error } = await supabase
         .from("issues")
-        .update({ status: newStatus })
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq("id", issueId);
 
       if (error) throw error;
+
+      // If marking as fully staffed, auto-reject all pending applications
+      if (newStatus === "in_progress_full") {
+        await supabase
+          .from("issue_interests")
+          .update({ status: "rejected", updated_at: new Date().toISOString() })
+          .eq("issue_id", issueId)
+          .eq("status", "pending");
+      }
 
       setIssues((prev) =>
         prev.map((issue) =>
@@ -174,13 +183,13 @@ export default function MyIssuesScreen() {
       case "open":
         return <Badge variant="success">Open</Badge>;
       case "in_progress_accepting":
-        return <Badge variant="primary">In Progress</Badge>;
+        return <Badge variant="primary">Accepting Candidates</Badge>;
       case "in_progress_full":
-        return <Badge variant="primary">Fully Staffed</Badge>;
+        return <Badge variant="warning">Fully Staffed</Badge>;
       case "completed":
         return <Badge variant="secondary">Completed</Badge>;
       case "closed":
-        return <Badge variant="secondary">Closed</Badge>;
+        return <Badge variant="secondary">Cancelled</Badge>;
       default:
         return null;
     }
@@ -191,7 +200,7 @@ export default function MyIssuesScreen() {
 
     if (issue.status === "open") {
       actions.push({
-        label: "Stop Accepting Students",
+        label: "Mark as Fully Staffed",
         icon: StopCircle,
         action: () => handleUpdateStatus(issue.id, "in_progress_full"),
       });
@@ -199,7 +208,7 @@ export default function MyIssuesScreen() {
 
     if (issue.status === "in_progress_full") {
       actions.push({
-        label: "Resume Accepting Students",
+        label: "Accept More Candidates",
         icon: Users,
         action: () => handleUpdateStatus(issue.id, "in_progress_accepting"),
       });
@@ -207,7 +216,7 @@ export default function MyIssuesScreen() {
 
     if (issue.status === "in_progress_accepting") {
       actions.push({
-        label: "Stop Accepting Students",
+        label: "Mark as Fully Staffed",
         icon: StopCircle,
         action: () => handleUpdateStatus(issue.id, "in_progress_full"),
       });
@@ -225,7 +234,7 @@ export default function MyIssuesScreen() {
     }
 
     actions.push({
-      label: "Delete Issue",
+      label: "Cancel Issue",
       icon: Trash2,
       action: () => handleDeleteIssue(issue.id),
       destructive: true,

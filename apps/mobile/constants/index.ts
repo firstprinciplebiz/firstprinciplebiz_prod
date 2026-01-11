@@ -20,6 +20,7 @@ export const INDUSTRIES = [
 
 // Areas of Interest / Expertise (used for "Looking for help with")
 export const EXPERTISE_AREAS = [
+  // Business & Management
   "Marketing",
   "Digital Marketing",
   "Social Media",
@@ -48,9 +49,42 @@ export const EXPERTISE_AREAS = [
   "Legal Compliance",
   "Sustainability",
   "Innovation",
+  // Technology & Development
+  "Web Development",
+  "App Development",
+  "Mobile Development",
+  "Frontend Development",
+  "Backend Development",
+  "Full Stack Development",
+  "Software Engineering",
+  "API Development",
+  "Database Management",
+  "Cloud Computing",
+  "DevOps",
+  "Cybersecurity",
+  "Data Science",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "UI/UX Design",
+  "Graphic Design",
+  "Video Editing",
+  "Content Creation",
+  "SEO/SEM",
 ];
 
+// Issue Status Labels
+export const ISSUE_STATUS_LABELS: Record<string, string> = {
+  open: "Open",
+  in_progress_accepting: "Accepting Candidates",
+  in_progress_full: "Fully Staffed",
+  completed: "Completed",
+  closed: "Cancelled",
+};
 
-
-
-
+// Interest Status Labels
+export const INTEREST_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+  withdrawn: "Withdrawn",
+};
