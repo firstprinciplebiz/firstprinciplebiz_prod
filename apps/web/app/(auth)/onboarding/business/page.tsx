@@ -155,9 +155,9 @@ export default function BusinessOnboardingPage() {
         return;
       }
 
-      // Generate a unique referral code for this user
-      const { data: referralData } = await supabase.rpc('generate_referral_code', { prefix: 'FPB' });
-      const newReferralCode = referralData || `FPB-${user.id.slice(0, 6).toUpperCase()}`;
+      // Generate a unique referral code for this user (simple 6-char alphanumeric)
+      const { data: referralData } = await supabase.rpc('generate_referral_code');
+      const newReferralCode = referralData || user.id.slice(0, 6).toUpperCase();
 
       // Create business profile
       const { error: profileError } = await supabase.from("business_profiles").insert({
@@ -344,10 +344,10 @@ export default function BusinessOnboardingPage() {
                 <input
                   type="text"
                   value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  placeholder="Enter referral code (e.g., FPB-ABC123)"
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  placeholder="Enter referral code (e.g., A3B7X9)"
                   className="input"
-                  maxLength={12}
+                  maxLength={6}
                 />
                 <p className="mt-1 text-xs text-slate-500">
                   If someone referred you, enter their code here

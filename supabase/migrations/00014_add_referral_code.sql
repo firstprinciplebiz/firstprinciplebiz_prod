@@ -21,16 +21,16 @@ ON public.student_profiles(referred_by_code) WHERE referred_by_code IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_business_profiles_referred_by 
 ON public.business_profiles(referred_by_code) WHERE referred_by_code IS NOT NULL;
 
--- Function to generate a unique referral code
-CREATE OR REPLACE FUNCTION generate_referral_code(prefix TEXT DEFAULT 'FPB')
+-- Function to generate a unique referral code (simple 6-character alphanumeric)
+CREATE OR REPLACE FUNCTION generate_referral_code(prefix TEXT DEFAULT '')
 RETURNS TEXT AS $$
 DECLARE
   new_code TEXT;
   code_exists BOOLEAN;
 BEGIN
   LOOP
-    -- Generate a code like FPB-ABC123
-    new_code := prefix || '-' || UPPER(SUBSTRING(MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT) FROM 1 FOR 6));
+    -- Generate a simple 6-character alphanumeric code like A3B7X9
+    new_code := UPPER(SUBSTRING(MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT) FROM 1 FOR 6));
     
     -- Check if it exists in either table
     SELECT EXISTS(

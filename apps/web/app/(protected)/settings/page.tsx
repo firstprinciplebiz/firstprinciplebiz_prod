@@ -1,9 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Settings, Shield, FileText, UserX, ChevronRight, Gift, Copy, Users } from "lucide-react";
+import { Settings, Shield, FileText, UserX, ChevronRight, Gift, Users, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui";
 import { CopyReferralCode } from "./CopyReferralCode";
+
+interface ReferredUser {
+  name: string;
+  type: "student" | "business";
+  createdAt: string;
+}
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -21,49 +27,99 @@ export default async function SettingsPage() {
     .single();
 
   let referralCode: string | null = null;
-  let referralCount = 0;
+  let referredByCode: string | null = null;
+  const referredUsers: ReferredUser[] = [];
 
   if (userData?.role === "student") {
     const { data: profile } = await supabase
       .from("student_profiles")
-      .select("referral_code")
+      .select("referral_code, referred_by_code")
       .eq("user_id", user.id)
       .single();
     referralCode = profile?.referral_code || null;
+    referredByCode = profile?.referred_by_code || null;
 
-    // Count how many users used this referral code
+    // Get all users who used this referral code
     if (referralCode) {
-      const { count: studentCount } = await supabase
+      // Get students who used this code
+      const { data: referredStudents } = await supabase
         .from("student_profiles")
-        .select("*", { count: "exact", head: true })
+        .select("full_name, created_at")
         .eq("referred_by_code", referralCode);
-      const { count: businessCount } = await supabase
+      
+      if (referredStudents) {
+        referredStudents.forEach((s) => {
+          referredUsers.push({
+            name: s.full_name || "Unknown",
+            type: "student",
+            createdAt: s.created_at,
+          });
+        });
+      }
+
+      // Get businesses who used this code
+      const { data: referredBusinesses } = await supabase
         .from("business_profiles")
-        .select("*", { count: "exact", head: true })
+        .select("business_name, created_at")
         .eq("referred_by_code", referralCode);
-      referralCount = (studentCount || 0) + (businessCount || 0);
+      
+      if (referredBusinesses) {
+        referredBusinesses.forEach((b) => {
+          referredUsers.push({
+            name: b.business_name || "Unknown",
+            type: "business",
+            createdAt: b.created_at,
+          });
+        });
+      }
     }
   } else if (userData?.role === "business") {
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("referral_code")
+      .select("referral_code, referred_by_code")
       .eq("user_id", user.id)
       .single();
     referralCode = profile?.referral_code || null;
+    referredByCode = profile?.referred_by_code || null;
 
-    // Count how many users used this referral code
+    // Get all users who used this referral code
     if (referralCode) {
-      const { count: studentCount } = await supabase
+      // Get students who used this code
+      const { data: referredStudents } = await supabase
         .from("student_profiles")
-        .select("*", { count: "exact", head: true })
+        .select("full_name, created_at")
         .eq("referred_by_code", referralCode);
-      const { count: businessCount } = await supabase
+      
+      if (referredStudents) {
+        referredStudents.forEach((s) => {
+          referredUsers.push({
+            name: s.full_name || "Unknown",
+            type: "student",
+            createdAt: s.created_at,
+          });
+        });
+      }
+
+      // Get businesses who used this code
+      const { data: referredBusinesses } = await supabase
         .from("business_profiles")
-        .select("*", { count: "exact", head: true })
+        .select("business_name, created_at")
         .eq("referred_by_code", referralCode);
-      referralCount = (studentCount || 0) + (businessCount || 0);
+      
+      if (referredBusinesses) {
+        referredBusinesses.forEach((b) => {
+          referredUsers.push({
+            name: b.business_name || "Unknown",
+            type: "business",
+            createdAt: b.created_at,
+          });
+        });
+      }
     }
   }
+
+  // Sort referred users by creation date (newest first)
+  referredUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const settingsLinks = [
     {
@@ -117,13 +173,58 @@ export default async function SettingsPage() {
               
               <CopyReferralCode code={referralCode} />
               
-              {/* Referral Stats */}
-              <div className="mt-4 flex items-center gap-2 text-sm">
-                <Users className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-600">
-                  <span className="font-semibold text-primary">{referralCount}</span>
-                  {referralCount === 1 ? " person" : " people"} joined using your code
-                </span>
+              {/* Referred by info */}
+              {referredByCode && (
+                <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-2 text-sm">
+                    <UserPlus className="w-4 h-4 text-slate-400" />
+                    <span className="text-slate-600">
+                      You joined using referral code: <span className="font-mono font-semibold text-primary">{referredByCode}</span>
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Referred Users List */}
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 text-slate-500" />
+                  <h3 className="text-sm font-semibold text-slate-700">
+                    Users who joined with your code ({referredUsers.length})
+                  </h3>
+                </div>
+                
+                {referredUsers.length === 0 ? (
+                  <p className="text-sm text-slate-500 italic">
+                    No one has used your referral code yet. Share it to invite friends!
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {referredUsers.map((referredUser, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                            referredUser.type === "student" ? "bg-primary" : "bg-emerald-500"
+                          }`}>
+                            {referredUser.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-800">{referredUser.name}</p>
+                            <p className="text-xs text-slate-500">
+                              {referredUser.type === "student" ? "Student" : "Business"}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs text-slate-400">
+                          {new Date(referredUser.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
