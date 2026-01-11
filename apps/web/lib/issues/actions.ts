@@ -139,6 +139,15 @@ export async function updateIssueStatus(issueId: string, status: string) {
     return { error: "Failed to update status" };
   }
 
+  // If issue is now "fully staffed", auto-reject all pending applications
+  if (status === "in_progress_full") {
+    await supabase
+      .from("issue_interests")
+      .update({ status: "rejected", updated_at: new Date().toISOString() })
+      .eq("issue_id", issueId)
+      .eq("status", "pending");
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/issues");
   revalidatePath("/my-issues");

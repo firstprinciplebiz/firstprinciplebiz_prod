@@ -108,7 +108,7 @@ export const issueSchema = z.object({
   title: z
     .string()
     .min(10, "Title must be at least 10 characters")
-    .max(200, "Title is too long"),
+    .max(64, "Title must be 64 characters or less"),
   description: z
     .string()
     .min(50, "Description must be at least 50 characters")

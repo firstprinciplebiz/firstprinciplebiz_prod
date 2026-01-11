@@ -89,12 +89,18 @@ export default function NewIssuePage() {
           </div>
 
           <div className="space-y-4">
-            <Input
-              label="Issue Title"
-              placeholder="e.g., Need help creating a social media strategy"
-              error={errors.title?.message}
-              {...register("title")}
-            />
+            <div>
+              <Input
+                label="Issue Title"
+                placeholder="e.g., Need help creating a social media strategy"
+                error={errors.title?.message}
+                maxLength={64}
+                {...register("title")}
+              />
+              <p className="mt-1 text-xs text-slate-500 text-right">
+                {(watch("title") || "").length}/64 characters
+              </p>
+            </div>
 
             <Textarea
               label="Description"
