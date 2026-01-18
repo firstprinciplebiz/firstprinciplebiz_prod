@@ -9,3 +9,9 @@ CREATE INDEX IF NOT EXISTS idx_business_profiles_city ON public.business_profile
 COMMENT ON COLUMN public.business_profiles.city IS 'City where the business is located';
 
 
+
+
+
+
+
+

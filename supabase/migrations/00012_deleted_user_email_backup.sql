@@ -11,3 +11,9 @@ CREATE INDEX IF NOT EXISTS idx_users_deleted_user_email ON public.users(deleted_
 COMMENT ON COLUMN public.users.deleted_user_email IS 'Original email address preserved when user deletes account. Used for record keeping.';
 
 
+
+
+
+
+
+

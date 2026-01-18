@@ -1,22 +1,85 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    // Get the user's session using the regular client
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log("Delete account API - Request received");
+    console.log("Delete account API - Method:", request.method);
+    console.log("Delete account API - URL:", request.url);
     
-    if (authError || !user) {
+    // Check for Bearer token in Authorization header (for mobile apps)
+    const authHeader = request.headers.get("authorization");
+    console.log("Delete account API - Auth header present:", !!authHeader);
+    console.log("Delete account API - Auth header value:", authHeader ? `${authHeader.substring(0, 20)}...` : "none");
+    
+    let supabase;
+    let user;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      console.log("Delete account API - Using Bearer token authentication (mobile)");
+      // Mobile app authentication - use Bearer token
+      const token = authHeader.substring(7);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      
+      // Create client with the token in the Authorization header
+      supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      });
+      
+      // Get user - this will use the Authorization header we set
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      
+      console.log("Delete account API - Auth error:", authError);
+      console.log("Delete account API - User from token:", authUser ? authUser.id : "none");
+      
+      if (authError || !authUser) {
+        console.log("Delete account API - Authentication failed:", authError?.message);
+        return NextResponse.json(
+          { error: "Invalid or expired authentication token" },
+          { status: 401 }
+        );
+      }
+      
+      user = authUser;
+    } else {
+      console.log("Delete account API - Using cookie authentication (web)");
+      // Web app authentication - use cookies
+      supabase = await createClient();
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      
+      console.log("Delete account API - Auth error:", authError);
+      console.log("Delete account API - User from cookies:", authUser ? authUser.id : "none");
+      
+      if (authError || !authUser) {
+        console.log("Delete account API - Authentication failed");
+        return NextResponse.json(
+          { error: "You must be logged in to delete your account" },
+          { status: 401 }
+        );
+      }
+      
+      user = authUser;
+    }
+    
+    if (!user) {
+      console.log("Delete account API - No user found");
       return NextResponse.json(
         { error: "You must be logged in to delete your account" },
         { status: 401 }
       );
     }
+    
+    console.log("Delete account API - User authenticated:", user.id);
 
     const userId = user.id;
-    const userEmail = user.email;
+    const userEmail = user.email || "";
 
     // Use admin client for elevated operations
     const adminClient = createAdminClient();

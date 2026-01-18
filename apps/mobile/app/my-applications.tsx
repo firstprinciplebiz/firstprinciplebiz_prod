@@ -93,12 +93,12 @@ export default function MyApplicationsScreen() {
   const filteredApplications = applications.filter((app) => {
     switch (activeFilter) {
       case "approved":
-        // Only approved applications (not in progress or closed)
+        // Approved applications where issue is in progress or closed (combination of both)
         return app.status === "approved" && 
-          app.issues?.status !== "completed" && 
-          app.issues?.status !== "closed" &&
-          app.issues?.status !== "in_progress_accepting" &&
-          app.issues?.status !== "in_progress_full";
+          (app.issues?.status === "in_progress_accepting" || 
+           app.issues?.status === "in_progress_full" ||
+           app.issues?.status === "completed" || 
+           app.issues?.status === "closed");
       case "in_progress":
         // Approved applications where issue is in progress
         return app.status === "approved" && 

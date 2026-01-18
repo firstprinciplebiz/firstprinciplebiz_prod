@@ -97,7 +97,10 @@ export default function IssuesScreen() {
     fetchIssues();
   }, [fetchIssues]);
 
-  const filteredIssues = issues.filter(
+  // Filter out applied issues and apply search
+  const availableIssues = issues.filter(issue => !appliedIssueIds.has(issue.id));
+  
+  const filteredIssues = availableIssues.filter(
     (issue) =>
       issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||

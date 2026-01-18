@@ -37,6 +37,7 @@ interface StudentProfile {
   avatar_url: string | null;
   university_name: string;
   degree_name: string;
+  degree_level: string;
   major: string;
   expertise: string[];
   areas_of_interest: string[];
@@ -253,6 +254,14 @@ export default function ProfileScreen() {
             <Text className="text-slate-600">
               {studentProfile.degree_name} in {studentProfile.major}
             </Text>
+            {studentProfile.degree_level && (
+              <Text className="text-xs text-slate-500 mt-1 capitalize">
+                {studentProfile.degree_level === "undergraduate" ? "Undergraduate" :
+                 studentProfile.degree_level === "masters" ? "Master's" :
+                 studentProfile.degree_level === "doctorate" ? "Doctorate" :
+                 studentProfile.degree_level} program
+              </Text>
+            )}
 
             {/* Areas of Interest */}
             <Text className="text-sm font-semibold text-slate-900 mt-4 mb-2">

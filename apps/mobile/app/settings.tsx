@@ -170,17 +170,59 @@ export default function SettingsScreen() {
       if (!user) throw new Error("Not authenticated");
 
       // Call the delete account API
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      console.log("Delete account - Starting request...");
+      console.log("Delete account - User ID:", user.id);
+      console.log("Delete account - Has session:", !!session);
+      console.log("Delete account - Has access token:", !!session.access_token);
+      
       const response = await fetch("https://www.firstprinciple.biz/api/delete-account", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          "Authorization": `Bearer ${session.access_token}`,
         },
+        body: JSON.stringify({ userId: user.id }),
       });
 
+      console.log("Delete account - Response status:", response.status);
+      console.log("Delete account - Response headers:", Object.fromEntries(response.headers.entries()));
+
+      // Read response body once
+      const responseText = await response.text();
+      console.log("Delete account - Response body:", responseText);
+      
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete account");
+        // Try to get error message from response
+        let errorMessage = "Failed to delete account";
+        try {
+          if (responseText) {
+            const data = JSON.parse(responseText);
+            errorMessage = data.error || data.message || errorMessage;
+            console.log("Delete account - Parsed error:", data);
+          }
+        } catch (parseError) {
+          console.log("Delete account - Failed to parse response as JSON:", parseError);
+          // If not JSON, use the text as error message or status text
+          errorMessage = responseText || response.statusText || errorMessage;
+        }
+        console.error("Delete account error:", errorMessage, "Status:", response.status);
+        throw new Error(errorMessage);
+      }
+
+      // Response is OK, try to parse if there's content (optional)
+      if (responseText) {
+        try {
+          const data = JSON.parse(responseText);
+          console.log("Delete account success:", data);
+        } catch {
+          // Response might not be JSON, which is fine
+          console.log("Delete account response (non-JSON):", responseText);
+        }
       }
 
       // Sign out and redirect
@@ -204,7 +246,6 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Settings" }} />
       <ScrollView className="flex-1 bg-slate-50">
         <View className="p-4">
           {/* Referral Code Section */}
@@ -370,4 +411,5 @@ export default function SettingsScreen() {
     </>
   );
 }
+
 

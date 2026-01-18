@@ -74,3 +74,9 @@ GRANT EXECUTE ON FUNCTION soft_delete_user(UUID) TO authenticated;
 
 
 
+
+
+
+
+
+

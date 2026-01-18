@@ -17,6 +17,7 @@ import { MultiSelect } from "@/components/ui/Select";
 import { EXPERTISE_AREAS } from "@/constants";
 import { Camera, Gift } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 const DEGREE_LEVELS = [
@@ -173,25 +174,38 @@ export default function StudentOnboardingScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const ext = uri.split(".").pop() || "jpg";
+      // Read file as base64
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Determine file extension and mime type
+      const ext = uri.split(".").pop()?.toLowerCase() || "jpg";
+      const mimeType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
       const fileName = `${user.id}/${Date.now()}.${ext}`;
 
-      const response = await fetch(uri);
-      const blob = await response.blob();
+      // Convert base64 to ArrayBuffer
+      const arrayBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
 
+      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(fileName, blob, { contentType: `image/${ext}`, upsert: true });
+        .upload(fileName, arrayBuffer, {
+          contentType: mimeType,
+          upsert: true,
+        });
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: urlData } = supabase.storage
         .from("avatars")
         .getPublicUrl(fileName);
 
       setAvatarUrl(urlData.publicUrl);
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to upload image");
+      console.error("Upload error:", error);
+      Alert.alert("Error", error.message || "Failed to upload image. Please try again.");
     } finally {
       setIsUploadingAvatar(false);
     }
