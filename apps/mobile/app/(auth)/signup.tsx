@@ -47,13 +47,11 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
-      const redirectUrl = Linking.createURL("auth/callback");
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
           data: { role },
-          emailRedirectTo: redirectUrl,
         },
       });
 

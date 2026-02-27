@@ -94,7 +94,6 @@ export const businessProfileSchema = z.object({
   business_description: z.string().max(2000, "Description is too long").optional(),
   industry: z.enum(INDUSTRIES as unknown as [string, ...string[]]),
   address: z.string().max(500, "Address is too long").optional(),
-  city: z.string().min(2, "City is required").max(100, "City name is too long").optional(),
   business_age_years: z.number().min(0).max(200).optional(),
   looking_for: z.array(z.enum(EXPERTISE_AREAS as unknown as [string, ...string[]])).optional().default([]),
 });
@@ -108,7 +107,7 @@ export const issueSchema = z.object({
   title: z
     .string()
     .min(10, "Title must be at least 10 characters")
-    .max(64, "Title must be 64 characters or less"),
+    .max(200, "Title is too long"),
   description: z
     .string()
     .min(50, "Description must be at least 50 characters")

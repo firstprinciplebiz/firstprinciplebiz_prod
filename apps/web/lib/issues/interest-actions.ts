@@ -2,8 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-// Note: Notifications are handled by database triggers in 00007_create_notifications.sql
-// Do not call createNotification() here to avoid duplicate notifications
+import { createNotification } from "@/lib/notifications/actions";
 
 export async function applyToIssue({
   issueId,
@@ -24,7 +23,7 @@ export async function applyToIssue({
   // Verify the student profile belongs to this user
   const { data: studentProfile, error: profileError } = await supabase
     .from("student_profiles")
-    .select("id, user_id")
+    .select("id, user_id, full_name")
     .eq("id", studentProfileId)
     .single();
 
@@ -35,6 +34,17 @@ export async function applyToIssue({
 
   if (!studentProfile || studentProfile.user_id !== user.id) {
     return { error: "Invalid student profile" };
+  }
+  
+  // Get student name from profile or users table
+  let studentName = studentProfile.full_name;
+  if (!studentName) {
+    const { data: userData } = await supabase
+      .from("users")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+    studentName = userData?.full_name || "A student";
   }
 
   // Check if issue is still accepting applications
@@ -87,7 +97,14 @@ export async function applyToIssue({
     return { error: "Failed to submit application" };
   }
 
-  // Note: Notification is created by database trigger (notify_new_interest)
+  // Notify business owner about new application
+  await createNotification({
+    userId: businessProfile.user_id,
+    type: "new_interest",
+    title: "New Application",
+    message: `${studentName} is interested in your issue: "${issue.title}"`,
+    metadata: { issueId, issueTitle: issue.title, studentId: studentProfileId },
+  });
 
   revalidatePath(`/issues/${issueId}`);
   revalidatePath("/my-applications");
@@ -217,7 +234,17 @@ export async function updateInterestStatus(
     }
   }
 
-  // Note: Notification is created by database trigger (notify_interest_status_change)
+  // Notify the student about the decision
+  const businessName = issueBusinessProfile.business_name || "A business";
+  await createNotification({
+    userId: studentUserId,
+    type: status === "approved" ? "interest_approved" : "interest_rejected",
+    title: status === "approved" ? "Application Approved! 🎉" : "Application Update",
+    message: status === "approved"
+      ? `${businessName} has approved your application for "${issue.title}". You can now start working on this issue!`
+      : `${businessName} has decided to go with other candidates for "${issue.title}". Keep applying!`,
+    metadata: { issueId, issueTitle: issue.title },
+  });
 
   // If approved, send an automatic welcome message from business to student
   if (status === "approved") {

@@ -7,10 +7,11 @@
     "icon": "./assets/icon.png",
     "scheme": "firstprinciplebiz",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#2563EB"
     },
     "ios": {
       "supportsTablet": true,
@@ -24,24 +25,6 @@
       "package": "com.firstprinciplebiz.app",
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ],
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "firstprinciplebiz",
-              "host": "*"
-            },
-            {
-              "scheme": "https",
-              "host": "www.firstprinciple.biz",
-              "pathPrefix": "/auth"
-            }
-          ],
-          "category": ["BROWSABLE", "DEFAULT"]
-        }
       ]
     },
     "web": {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  Lightbulb,
   Users,
   Building2,
   GraduationCap,
@@ -16,13 +17,11 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <img 
-                src="/icon.png" 
-                alt="FirstPrincipleBiz" 
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-contain"
-              />
-              <span className="font-bold text-lg sm:text-xl text-slate-900 hidden sm:inline">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+                <Lightbulb className="w-6 h-6 text-white" />
+              </div>
+              <span className="font-bold text-xl text-slate-900">
                 FirstPrinciple<span className="text-primary">Biz</span>
               </span>
             </Link>
@@ -39,11 +38,11 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <Link href="/login" className="btn-ghost text-sm sm:text-base px-3 sm:px-4 py-2">
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="btn-ghost">
                 Log in
               </Link>
-              <Link href="/signup" className="btn-primary text-sm sm:text-base px-3 sm:px-4 py-2">
+              <Link href="/signup" className="btn-primary">
                 Get Started
               </Link>
             </div>
@@ -52,16 +51,9 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-20 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Brand name visible only on small screens (when navbar hides it) */}
-            <div className="sm:hidden mb-4">
-              <span className="font-bold text-2xl text-slate-900">
-                FirstPrinciple<span className="text-primary">Biz</span>
-              </span>
-            </div>
-            
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
               Bridging Academia and Real Business
@@ -92,10 +84,10 @@ export default function HomePage() {
           {/* Stats */}
           <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: "200+", label: "Active Students" },
-              { value: "20+", label: "Local Businesses" },
-              { value: "5+", label: "Problems Solved" },
-              { value: "100%", label: "Satisfaction Rate" },
+              { value: "500+", label: "Active Students" },
+              { value: "150+", label: "Local Businesses" },
+              { value: "300+", label: "Problems Solved" },
+              { value: "95%", label: "Satisfaction Rate" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="text-4xl font-bold gradient-text mb-2">{stat.value}</div>
@@ -209,10 +201,10 @@ export default function HomePage() {
                   <span className="badge bg-slate-100 text-slate-600">Social Media</span>
                   <span className="badge bg-slate-100 text-slate-600">Analytics</span>
                 </div>
-                <Link href="/student/signup" className="btn-primary w-full flex items-center justify-center">
+                <button className="btn-primary w-full">
                   <Target className="w-5 h-5 mr-2" />
                   I&apos;m Interested
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -245,7 +237,7 @@ export default function HomePage() {
                       <div className="input bg-slate-50">2 weeks</div>
                     </div>
                   </div>
-                  <Link href="/business/signup" className="btn-primary w-full flex items-center justify-center">Post Challenge</Link>
+                  <button className="btn-primary w-full">Post Challenge</button>
                 </div>
               </div>
             </div>
@@ -309,17 +301,15 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-200">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              <img 
-                src="/icon.png" 
-                alt="FirstPrincipleBiz" 
-                className="w-8 h-8 rounded-lg object-contain"
-              />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center">
+                <Lightbulb className="w-4 h-4 text-white" />
+              </div>
               <span className="font-semibold text-slate-900">FirstPrincipleBiz</span>
-            </Link>
+            </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-8">
               <Link href="/about" className="text-slate-600 hover:text-slate-900">
                 About
               </Link>
@@ -329,6 +319,13 @@ export default function HomePage() {
               <Link href="/terms" className="text-slate-600 hover:text-slate-900">
                 Terms
               </Link>
+              <Link href="/contact" className="text-slate-600 hover:text-slate-900">
+                Contact
+              </Link>
+            </div>
+
+            <div className="text-slate-500 text-sm">
+              © 2024 FirstPrincipleBiz. All rights reserved.
             </div>
           </div>
         </div>

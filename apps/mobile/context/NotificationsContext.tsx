@@ -165,34 +165,17 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     }
   }, [notifications]);
 
-  // Initial fetch - ensure we fetch notifications and set currentUserId on mount
+  // Initial fetch
   useEffect(() => {
-    const initializeNotifications = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-        await fetchNotifications();
-      }
-      await fetchUnreadCount();
-    };
-
-    initializeNotifications();
+    fetchUnreadCount();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setCurrentUserId(session.user.id);
-        await fetchNotifications();
-      } else {
-        setCurrentUserId(null);
-        setNotifications([]);
-        setUnreadCount(0);
-      }
-      await fetchUnreadCount();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchUnreadCount();
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchUnreadCount, fetchNotifications]);
+  }, [fetchUnreadCount]);
 
   // Subscribe to real-time notifications
   useEffect(() => {
@@ -215,49 +198,17 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
 
-          // Check app state - only schedule push notification if app is in background or closed
-          const currentAppState = AppState.currentState;
-          if (currentAppState !== 'active') {
-            // Determine thread identifier based on notification type
-            let threadId: string | undefined;
-            if (newNotification.type === 'new_message' && newNotification.metadata) {
-              const metadata = newNotification.metadata as Record<string, any>;
-              // Support both camelCase and snake_case
-              const issueId = metadata.issueId || metadata.issue_id;
-              const participantId = metadata.participantId || metadata.participant_id;
-              if (issueId && participantId) {
-                threadId = `chat-${issueId}-${participantId}`;
+          // Show local push notification if app is in background or inactive
+          if (appState.current !== "active") {
+            await scheduleLocalNotification(
+              newNotification.title,
+              newNotification.message,
+              {
+                type: newNotification.type,
+                notificationId: newNotification.id,
+                ...newNotification.metadata,
               }
-            } else if (newNotification.type === 'interest_approved' || newNotification.type === 'interest_rejected') {
-              const metadata = newNotification.metadata as Record<string, any>;
-              // Support both camelCase and snake_case
-              const issueId = metadata.issueId || metadata.issue_id;
-              if (issueId) {
-                threadId = `application-${issueId}`;
-              }
-            } else if (newNotification.type === 'new_interest') {
-              const metadata = newNotification.metadata as Record<string, any>;
-              // Support both camelCase and snake_case
-              const issueId = metadata.issueId || metadata.issue_id;
-              if (issueId) {
-                threadId = `interest-${issueId}`;
-              }
-            }
-
-            try {
-              await scheduleLocalNotification(
-                newNotification.title,
-                newNotification.message,
-                {
-                  type: newNotification.type,
-                  notificationId: newNotification.id,
-                  ...newNotification.metadata,
-                },
-                threadId
-              );
-            } catch (error) {
-              console.error("Error scheduling notification:", error);
-            }
+            );
           }
         }
       )
@@ -306,14 +257,13 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       // Refresh notifications when app comes to foreground
       if (nextAppState === "active") {
         fetchUnreadCount();
-        fetchNotifications(); // Also fetch full notifications list
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [fetchUnreadCount, fetchNotifications]);
+  }, [fetchUnreadCount]);
 
   // Subscribe to new messages to create message notifications
   useEffect(() => {
@@ -341,37 +291,33 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
           // Only notify for unread messages
           if (newMessage.is_read) return;
 
-          // Check app state - only show push notification if app is in background or closed
-          const currentAppState = AppState.currentState;
-          if (currentAppState !== 'active') {
-            // Get sender info
-            const { data: senderData } = await supabase
-              .from("users")
-              .select("role")
-              .eq("id", newMessage.sender_id)
+          // Get sender info
+          const { data: senderData } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", newMessage.sender_id)
+            .single();
+
+          let senderName = "Someone";
+          
+          if (senderData?.role === "student") {
+            const { data: studentProfile } = await supabase
+              .from("student_profiles")
+              .select("full_name")
+              .eq("user_id", newMessage.sender_id)
               .single();
+            senderName = studentProfile?.full_name || "A student";
+          } else if (senderData?.role === "business") {
+            const { data: businessProfile } = await supabase
+              .from("business_profiles")
+              .select("business_name, owner_name")
+              .eq("user_id", newMessage.sender_id)
+              .single();
+            senderName = businessProfile?.business_name || businessProfile?.owner_name || "A business";
+          }
 
-            let senderName = "Someone";
-            
-            if (senderData?.role === "student") {
-              const { data: studentProfile } = await supabase
-                .from("student_profiles")
-                .select("full_name")
-                .eq("user_id", newMessage.sender_id)
-                .single();
-              senderName = studentProfile?.full_name || "A student";
-            } else if (senderData?.role === "business") {
-              const { data: businessProfile } = await supabase
-                .from("business_profiles")
-                .select("business_name, owner_name")
-                .eq("user_id", newMessage.sender_id)
-                .single();
-              senderName = businessProfile?.business_name || businessProfile?.owner_name || "A business";
-            }
-
-            // Use thread identifier to group messages by conversation
-            const threadId = `chat-${newMessage.issue_id}-${newMessage.sender_id}`;
-
+          // Show push notification if app is not active
+          if (appState.current !== "active") {
             await scheduleLocalNotification(
               `New message from ${senderName}`,
               newMessage.content.substring(0, 100) + (newMessage.content.length > 100 ? "..." : ""),
@@ -379,8 +325,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
                 type: "new_message",
                 issueId: newMessage.issue_id,
                 participantId: newMessage.sender_id,
-              },
-              threadId
+              }
             );
           }
         }

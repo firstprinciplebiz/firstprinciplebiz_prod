@@ -111,7 +111,7 @@ export function IssueStatusActions({ issueId, currentStatus }: IssueStatusAction
               </button>
             )}
 
-            {/* Cancel issue - show if not already closed */}
+            {/* Close issue - show if not already closed */}
             {!isClosed && (
               <>
                 <hr className="my-1" />
@@ -120,7 +120,7 @@ export function IssueStatusActions({ issueId, currentStatus }: IssueStatusAction
                   className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <XCircle className="w-4 h-4 text-slate-500" />
-                  Cancel Issue
+                  Close Issue
                 </button>
               </>
             )}

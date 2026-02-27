@@ -37,7 +37,6 @@ export default async function IssuesPage({
   const offset = (page - 1) * limit;
 
   // Show issues that are either open or in_progress but still accepting students
-  // Also include user info to filter out deleted businesses
   let query = supabase
     .from("issues")
     .select(`
@@ -46,8 +45,7 @@ export default async function IssuesPage({
         id,
         business_name,
         industry,
-        avatar_url,
-        user_id
+        avatar_url
       )
     `, { count: "exact" })
     .in("status", ["open", "in_progress_accepting"]);
@@ -71,29 +69,8 @@ export default async function IssuesPage({
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  const { data: rawIssues, count: rawCount } = await query;
+  const { data: issues, count } = await query;
 
-  // Filter out issues from deleted businesses
-  let issues = rawIssues || [];
-  if (issues.length > 0) {
-    // Get all unique business user IDs
-    const businessUserIds = [...new Set(issues.map((issue: { business: { user_id: string } }) => issue.business.user_id))];
-    
-    // Check which users are deleted
-    const { data: deletedUsers } = await supabase
-      .from("users")
-      .select("id")
-      .in("id", businessUserIds)
-      .not("deleted_at", "is", null);
-    
-    const deletedUserIds = new Set(deletedUsers?.map((u) => u.id) || []);
-    
-    // Filter out issues from deleted users
-    issues = issues.filter((issue: { business: { user_id: string } }) => !deletedUserIds.has(issue.business.user_id));
-  }
-
-  // Adjust count for filtered issues (approximate since we can't easily filter in the original query)
-  const count = issues.length < (rawCount || 0) ? issues.length : rawCount;
   const totalPages = Math.ceil((count || 0) / limit);
 
   // Get user's interests for marking applied issues

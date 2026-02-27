@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import {
+  Lightbulb,
   Home,
   Search,
   PlusCircle,
@@ -59,11 +60,9 @@ export function Navbar({ user, role }: NavbarProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <img 
-              src="/icon.png" 
-              alt="FirstPrincipleBiz" 
-              className="w-9 h-9 rounded-lg object-contain"
-            />
+            <div className="w-9 h-9 rounded-lg gradient-bg flex items-center justify-center">
+              <Lightbulb className="w-5 h-5 text-white" />
+            </div>
             <span className="font-bold text-lg text-slate-900 hidden sm:block">
               FirstPrinciple<span className="text-primary">Biz</span>
             </span>

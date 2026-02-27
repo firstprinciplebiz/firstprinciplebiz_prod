@@ -31,16 +31,8 @@ export default function NewIssueScreen() {
   const router = useRouter();
 
   const handleSubmit = async () => {
-    if (!formData.title || formData.title.trim().length < 10) {
-      Alert.alert("Error", "Title must be at least 10 characters");
-      return;
-    }
-    if (formData.title.trim().length > 64) {
-      Alert.alert("Error", "Title must be at most 64 characters");
-      return;
-    }
-    if (!formData.description || formData.description.trim().length < 50) {
-      Alert.alert("Error", "Description must be at least 50 characters");
+    if (!formData.title || !formData.description) {
+      Alert.alert("Error", "Please fill in the title and description");
       return;
     }
 
@@ -90,20 +82,14 @@ export default function NewIssueScreen() {
         <View className="p-4">
           <Card className="p-4 mb-4">
             <View className="space-y-4">
-              <View>
-                <Input
-                  label="Title * (10-64 characters)"
-                  placeholder="Enter a clear, descriptive title"
-                  value={formData.title}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, title: text.slice(0, 64) })
-                  }
-                  maxLength={64}
-                />
-                <Text className={`text-xs mt-1 ${formData.title.length > 64 ? 'text-red-500' : 'text-slate-500'}`}>
-                  {formData.title.length}/64 characters
-                </Text>
-              </View>
+              <Input
+                label="Title *"
+                placeholder="Enter a clear, descriptive title"
+                value={formData.title}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, title: text })
+                }
+              />
 
               <Input
                 label="Description *"

@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import * as Linking from "expo-linking";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -27,10 +26,7 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
-      const redirectUrl = Linking.createURL("auth/reset-password");
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: redirectUrl,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
 
       if (error) {
         Alert.alert("Error", error.message);
@@ -86,7 +82,7 @@ export default function ForgotPasswordScreen() {
 
         {/* Form */}
         <View className="space-y-4">
-          <View className="mb-4">
+          <View>
             <Text className="text-sm font-medium text-slate-700 mb-1.5">
               Email
             </Text>
