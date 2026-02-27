@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { issueSchema, type IssueInput, EXPERTISE_AREAS, COMPENSATION_TYPES } from "@repo/shared";
+import { issueSchema, type IssueInput, EXPERTISE_AREAS, COMPENSATION_TYPES } from "shared";
 import { Button, Input, Textarea, Select, MultiSelect, Card } from "@/components/ui";
 import { createIssue } from "@/lib/issues/actions";
 import { ArrowLeft, Lightbulb, DollarSign, Clock, Briefcase } from "lucide-react";
@@ -89,12 +89,18 @@ export default function NewIssuePage() {
           </div>
 
           <div className="space-y-4">
-            <Input
-              label="Issue Title"
-              placeholder="e.g., Need help creating a social media strategy"
-              error={errors.title?.message}
-              {...register("title")}
-            />
+            <div>
+              <Input
+                label="Issue Title"
+                placeholder="e.g., Need help creating a social media strategy"
+                error={errors.title?.message}
+                maxLength={64}
+                {...register("title")}
+              />
+              <p className="mt-1 text-xs text-slate-500 text-right">
+                {(watch("title") || "").length}/64 characters
+              </p>
+            </div>
 
             <Textarea
               label="Description"

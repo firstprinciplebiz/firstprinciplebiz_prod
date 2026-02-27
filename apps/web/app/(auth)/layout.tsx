@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Lightbulb } from "lucide-react";
 
 export default function AuthLayout({
   children,
@@ -14,9 +13,11 @@ export default function AuthLayout({
       {/* Header */}
       <header className="relative z-10 p-6">
         <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
-            <Lightbulb className="w-6 h-6 text-white" />
-          </div>
+          <img 
+            src="/icon.png" 
+            alt="FirstPrincipleBiz" 
+            className="w-10 h-10 rounded-xl object-contain"
+          />
           <span className="font-bold text-xl text-slate-900">
             FirstPrinciple<span className="text-primary">Biz</span>
           </span>

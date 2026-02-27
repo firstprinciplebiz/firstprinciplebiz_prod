@@ -13,6 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Camera, User, Building2 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/Input";
+import { PhoneInput, isValidPhoneNumber } from "@/components/ui/PhoneInput";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select, MultiSelect } from "@/components/ui/Select";
@@ -202,6 +203,72 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
+    // Validate student data
+    if (role === "student") {
+      if (!studentData.full_name || studentData.full_name.trim().length < 2) {
+        Alert.alert("Validation Error", "Full name must be at least 2 characters");
+        return;
+      }
+      if (studentData.phone && !isValidPhoneNumber(studentData.phone)) {
+        Alert.alert("Validation Error", "Phone number must be exactly 10 digits");
+        return;
+      }
+      if (!studentData.university_name || studentData.university_name.trim().length < 2) {
+        Alert.alert("Validation Error", "University name is required");
+        return;
+      }
+      if (!studentData.degree_name || studentData.degree_name.trim().length < 2) {
+        Alert.alert("Validation Error", "Degree name is required");
+        return;
+      }
+      if (!studentData.major || studentData.major.trim().length < 2) {
+        Alert.alert("Validation Error", "Major is required");
+        return;
+      }
+      if (studentData.bio && studentData.bio.trim().length > 0 && studentData.bio.trim().length < 25) {
+        Alert.alert("Validation Error", "Bio must be at least 25 characters if provided");
+        return;
+      }
+      if (!studentData.areas_of_interest || studentData.areas_of_interest.length === 0) {
+        Alert.alert("Validation Error", "Please select at least one area of interest");
+        return;
+      }
+      if (!studentData.expertise || studentData.expertise.length === 0) {
+        Alert.alert("Validation Error", "Please select at least one expertise");
+        return;
+      }
+      if (!studentData.open_to_paid && !studentData.open_to_voluntary) {
+        Alert.alert("Validation Error", "Please select at least one work preference");
+        return;
+      }
+    } else {
+      // Validate business data
+      if (!businessData.owner_name || businessData.owner_name.trim().length < 2) {
+        Alert.alert("Validation Error", "Owner name must be at least 2 characters");
+        return;
+      }
+      if (businessData.phone && !isValidPhoneNumber(businessData.phone)) {
+        Alert.alert("Validation Error", "Phone number must be exactly 10 digits");
+        return;
+      }
+      if (!businessData.business_name || businessData.business_name.trim().length < 2) {
+        Alert.alert("Validation Error", "Business name is required");
+        return;
+      }
+      if (!businessData.industry) {
+        Alert.alert("Validation Error", "Industry is required");
+        return;
+      }
+      if (businessData.business_description && businessData.business_description.trim().length > 0 && businessData.business_description.trim().length < 25) {
+        Alert.alert("Validation Error", "Business description must be at least 25 characters if provided");
+        return;
+      }
+      if (!businessData.looking_for || businessData.looking_for.length === 0) {
+        Alert.alert("Validation Error", "Please select at least one type of help you're looking for");
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -317,14 +384,13 @@ export default function EditProfileScreen() {
                   </View>
                 )}
                 
-                <Input
+                <PhoneInput
                   label="Phone"
                   value={studentData.phone}
                   onChangeText={(text) =>
                     setStudentData({ ...studentData, phone: text })
                   }
-                  keyboardType="phone-pad"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="1234567890"
                 />
                 
                 <Input
@@ -491,14 +557,13 @@ export default function EditProfileScreen() {
                   placeholder="123 Main St, City, Country"
                 />
 
-                <Input
+                <PhoneInput
                   label="Phone"
                   value={businessData.phone}
                   onChangeText={(text) =>
                     setBusinessData({ ...businessData, phone: text })
                   }
-                  keyboardType="phone-pad"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="1234567890"
                 />
 
                 {businessData.email && (

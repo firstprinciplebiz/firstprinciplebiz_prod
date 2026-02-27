@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
   Bell,
   Briefcase,
@@ -35,6 +35,13 @@ export default function NotificationsScreen() {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [fetchNotifications])
+  );
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

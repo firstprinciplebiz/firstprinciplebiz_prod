@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PlusCircle, FileText, Clock, CheckCircle2, XCircle, Users } from "lucide-react";
 import { Card, Badge, Button } from "@/components/ui";
-import { ISSUE_STATUSES, COMPENSATION_TYPES } from "@repo/shared";
+import { ISSUE_STATUSES, COMPENSATION_TYPES } from "shared";
 import { IssueStatusActions } from "./IssueStatusActions";
 import { RealtimeRefresh } from "@/components/realtime/RealtimeRefresh";
 
@@ -89,13 +89,13 @@ export default async function MyIssuesPage() {
       case "open":
         return "Open";
       case "in_progress_accepting":
-        return "In Progress (Accepting)";
+        return "Accepting more candidates";
       case "in_progress_full":
-        return "In Progress (Full)";
+        return "Fully Staffed";
       case "completed":
         return "Completed";
       case "closed":
-        return "Closed";
+        return "Cancelled";
       default:
         return status;
     }

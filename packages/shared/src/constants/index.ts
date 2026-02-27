@@ -26,6 +26,7 @@ export type Industry = (typeof INDUSTRIES)[number];
 // Areas of Interest / Expertise
 // ============================================
 export const EXPERTISE_AREAS = [
+  // Business & Management
   "Marketing",
   "Digital Marketing",
   "Social Media",
@@ -54,6 +55,27 @@ export const EXPERTISE_AREAS = [
   "Legal Compliance",
   "Sustainability",
   "Innovation",
+  // Technology & Development
+  "Web Development",
+  "App Development",
+  "Mobile Development",
+  "Frontend Development",
+  "Backend Development",
+  "Full Stack Development",
+  "Software Engineering",
+  "API Development",
+  "Database Management",
+  "Cloud Computing",
+  "DevOps",
+  "Cybersecurity",
+  "Data Science",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "UI/UX Design",
+  "Graphic Design",
+  "Video Editing",
+  "Content Creation",
+  "SEO/SEM",
 ] as const;
 
 export type ExpertiseArea = (typeof EXPERTISE_AREAS)[number];
@@ -82,10 +104,10 @@ export const COMPENSATION_TYPES = [
 // ============================================
 export const ISSUE_STATUSES = [
   { value: "open", label: "Open", color: "primary" },
-  { value: "in_progress_accepting", label: "In Progress (Accepting)", color: "blue" },
-  { value: "in_progress_full", label: "In Progress (Full)", color: "amber" },
+  { value: "in_progress_accepting", label: "Accepting more candidates", color: "blue" },
+  { value: "in_progress_full", label: "Fully Staffed", color: "amber" },
   { value: "completed", label: "Completed", color: "green" },
-  { value: "closed", label: "Closed", color: "slate" },
+  { value: "closed", label: "Cancelled", color: "slate" },
 ] as const;
 
 // ============================================

@@ -1,29 +1,11 @@
+// @ts-check
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
-const path = require("path");
 
-const projectRoot = __dirname;
-const monorepoRoot = path.resolve(projectRoot, "../..");
-
-const config = getDefaultConfig(projectRoot);
-
-// Set project root explicitly
-config.projectRoot = projectRoot;
-
-// Watch all files in the monorepo but keep project root as the main entry point
-config.watchFolders = [monorepoRoot];
-
-// Let Metro know where to resolve packages - order matters
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, "node_modules"),
-  path.resolve(monorepoRoot, "node_modules"),
-];
-
-// Extra node_modules for symlinked packages
-config.resolver.extraNodeModules = {
-  ...config.resolver.extraNodeModules,
-  "shared": path.resolve(monorepoRoot, "packages/shared"),
-  "core": path.resolve(monorepoRoot, "packages/core"),
-};
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname, {
+  // Necessary for NativeWind
+  isCSSEnabled: true,
+});
 
 module.exports = withNativeWind(config, { input: "./global.css" });

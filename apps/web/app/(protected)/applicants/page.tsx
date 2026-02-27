@@ -82,7 +82,7 @@ export default async function ApplicantsPage() {
     .select(`
       id,
       status,
-      message,
+      cover_message,
       created_at,
       issue_id,
       student_id,
@@ -90,10 +90,10 @@ export default async function ApplicantsPage() {
         id,
         full_name,
         avatar_url,
-        university,
-        degree,
+        university_name,
+        degree_name,
         major,
-        expertise_areas
+        expertise
       )
     `)
     .in("issue_id", issueIds)
@@ -183,14 +183,14 @@ export default async function ApplicantsPage() {
                           {student.full_name || "Student"}
                         </Link>
                         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 mt-1">
-                          {student.university && (
+                          {student.university_name && (
                             <span className="flex items-center gap-1">
                               <GraduationCap className="w-4 h-4" />
-                              {student.university}
+                              {student.university_name}
                             </span>
                           )}
-                          {student.degree && student.major && (
-                            <span>• {student.degree} in {student.major}</span>
+                          {student.degree_name && student.major && (
+                            <span>• {student.degree_name} in {student.major}</span>
                           )}
                         </div>
                       </div>
@@ -210,16 +210,16 @@ export default async function ApplicantsPage() {
                     </Link>
 
                     {/* Student Message */}
-                    {interest.message && (
+                    {interest.cover_message && (
                       <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                        <p className="text-sm text-slate-600 italic">&ldquo;{interest.message}&rdquo;</p>
+                        <p className="text-sm text-slate-600 italic">&ldquo;{interest.cover_message}&rdquo;</p>
                       </div>
                     )}
 
                     {/* Expertise Areas */}
-                    {student.expertise_areas && student.expertise_areas.length > 0 && (
+                    {student.expertise && student.expertise.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        {student.expertise_areas.slice(0, 5).map((area: string) => (
+                        {student.expertise.slice(0, 5).map((area: string) => (
                           <span
                             key={area}
                             className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full"
@@ -227,9 +227,9 @@ export default async function ApplicantsPage() {
                             {area}
                           </span>
                         ))}
-                        {student.expertise_areas.length > 5 && (
+                        {student.expertise.length > 5 && (
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">
-                            +{student.expertise_areas.length - 5} more
+                            +{student.expertise.length - 5} more
                           </span>
                         )}
                       </div>

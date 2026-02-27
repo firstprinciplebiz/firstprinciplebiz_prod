@@ -2,6 +2,16 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  // CRITICAL: Check for API routes FIRST, before any other processing
+  // API routes handle their own authentication and should not be intercepted
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+  if (isApiRoute) {
+    console.log("Middleware - Skipping API route:", request.nextUrl.pathname);
+    return NextResponse.next({
+      request,
+    });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });

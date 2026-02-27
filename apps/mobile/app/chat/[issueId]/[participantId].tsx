@@ -10,13 +10,15 @@ import {
   ActivityIndicator,
   Image,
   Alert,
-  Pressable,
+  Modal,
 } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useUnreadMessages } from "@/context/UnreadMessagesContext";
 import * as DocumentPicker from "expo-document-picker";
+import * as WebBrowser from "expo-web-browser";
 import { Send, Paperclip, User, X, FileText } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { dismissNotificationsForThread } from "@/lib/notifications";
 
 // Format file size helper
 function formatFileSize(bytes: number): string {
@@ -67,6 +69,8 @@ export default function ChatScreen() {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const currentUserIdRef = useRef<string | null>(null);
   const router = useRouter();
@@ -79,12 +83,19 @@ export default function ChatScreen() {
     currentUserIdRef.current = currentUserId;
   }, [currentUserId]);
 
-  const handleViewProfile = useCallback(() => {
+  const handleViewProfile = useCallback(async () => {
     if (participant?.profileId) {
-      const route = participant.role === "student" 
-        ? `/profile/student/${participant.profileId}`
-        : `/profile/business/${participant.profileId}`;
-      router.push(route);
+      setIsLoadingProfile(true);
+      try {
+        const route = participant.role === "student" 
+          ? `/profile/student/${participant.profileId}`
+          : `/profile/business/${participant.profileId}`;
+        await router.push(route);
+      } catch (error) {
+        console.error("Error navigating to profile:", error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
     }
   }, [participant, router]);
 
@@ -185,6 +196,10 @@ export default function ChatScreen() {
       } else {
         // Refresh the unread count after marking messages as read
         await refreshUnreadCount();
+        
+        // Clear push notifications for this chat thread
+        const threadId = `chat-${issueId}-${participantId}`;
+        await dismissNotificationsForThread(threadId);
       }
     } catch (error) {
       console.error("Error marking messages as read:", error);
@@ -260,6 +275,10 @@ export default function ChatScreen() {
 
       if (unreadIds.length > 0) {
         await markMessagesAsRead(unreadIds);
+        
+        // Clear push notifications for this chat thread when opening chat
+        const threadId = `chat-${issueId}-${participantId}`;
+        await dismissNotificationsForThread(threadId);
       }
     } catch (error) {
       console.error("Error fetching chat data:", error);
@@ -404,10 +423,29 @@ export default function ChatScreen() {
     const handleDownload = async () => {
       if (!message.attachment_url) return;
       setLoading(true);
-      const url = await getSignedUrl(message.attachment_url);
-      setLoading(false);
-      if (url) {
-        Alert.alert("Download", `File URL: ${url.substring(0, 50)}...`);
+      try {
+        const url = await getSignedUrl(message.attachment_url);
+        setLoading(false);
+        if (url) {
+          // Check if it's a PDF or document
+          const isPDF = message.attachment_type === "application/pdf" || 
+                       message.attachment_name?.toLowerCase().endsWith(".pdf") ||
+                       message.attachment_type?.includes("document") ||
+                       message.attachment_type?.includes("word");
+          
+          if (isPDF) {
+            // Open in in-app browser
+            await WebBrowser.openBrowserAsync(url, {
+              presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
+            });
+          } else {
+            // For other files, show alert (can be enhanced later)
+            Alert.alert("File", `File URL: ${url.substring(0, 50)}...`);
+          }
+        }
+      } catch (error) {
+        setLoading(false);
+        Alert.alert("Error", "Failed to open file");
       }
     };
 
@@ -421,11 +459,16 @@ export default function ChatScreen() {
       }
       if (signedUrl) {
         return (
-          <Image
-            source={{ uri: signedUrl }}
-            className="w-48 h-32 rounded-lg"
-            resizeMode="cover"
-          />
+          <TouchableOpacity
+            onPress={() => setZoomedImage(signedUrl)}
+            activeOpacity={0.8}
+          >
+            <Image
+              source={{ uri: signedUrl }}
+              className="w-48 h-32 rounded-lg"
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         );
       }
     }
@@ -508,18 +551,22 @@ export default function ChatScreen() {
 
   // Header component for profile navigation
   const HeaderTitle = () => (
-    <Pressable
+    <TouchableOpacity
       onPress={handleViewProfile}
-      style={({ pressed }) => ({
+      disabled={isLoadingProfile}
+      activeOpacity={0.7}
+      style={{
         flexDirection: 'row',
         alignItems: 'center',
-        opacity: pressed ? 0.7 : 1,
         paddingVertical: 8,
         paddingHorizontal: 4,
-      })}
+        opacity: isLoadingProfile ? 0.7 : 1,
+      }}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
     >
-      {participant?.avatar_url ? (
+      {isLoadingProfile ? (
+        <ActivityIndicator size="small" color="#2563EB" style={{ marginRight: 8 }} />
+      ) : participant?.avatar_url ? (
         <Image
           source={{ uri: participant.avatar_url }}
           style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8 }}
@@ -540,7 +587,7 @@ export default function ChatScreen() {
       <Text style={{ fontSize: 16, fontWeight: '600', color: '#0F172A' }}>
         {participant?.name || "Chat"}
       </Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 
   if (isLoading) {
@@ -556,6 +603,10 @@ export default function ChatScreen() {
       <Stack.Screen
         options={{
           headerTitle: () => <HeaderTitle />,
+          headerTitleAlign: 'left',
+          headerTitleStyle: {
+            width: '100%',
+          },
         }}
       />
       <KeyboardAvoidingView
@@ -641,6 +692,36 @@ export default function ChatScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Image Zoom Modal */}
+      {zoomedImage && (
+        <Modal
+          visible={!!zoomedImage}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setZoomedImage(null)}
+        >
+          <View className="flex-1 bg-black/90 items-center justify-center">
+            <TouchableOpacity
+              className="absolute top-12 right-4 z-10"
+              onPress={() => setZoomedImage(null)}
+            >
+              <X color="white" size={24} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 w-full items-center justify-center"
+              activeOpacity={1}
+              onPress={() => setZoomedImage(null)}
+            >
+              <Image
+                source={{ uri: zoomedImage }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
     </>
   );
 }

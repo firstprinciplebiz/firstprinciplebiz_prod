@@ -116,6 +116,22 @@ export default function ApplicantsScreen() {
 
       if (error) throw error;
 
+      // If approved, update issue status to in_progress_accepting if it's currently "open"
+      if (action === "approve" && applicant.issues) {
+        const { data: currentIssue } = await supabase
+          .from("issues")
+          .select("status")
+          .eq("id", applicant.issues.id)
+          .single();
+
+        if (currentIssue?.status === "open") {
+          await supabase
+            .from("issues")
+            .update({ status: "in_progress_accepting", updated_at: new Date().toISOString() })
+            .eq("id", applicant.issues.id);
+        }
+      }
+
       // If approved, send a welcome message to unlock chat
       if (action === "approve" && applicant.student_profiles && applicant.issues) {
         const welcomeMessage = `Welcome! You've been approved to work on "${applicant.issues.title}". I'm excited to collaborate with you. Feel free to ask any questions about the project!`;

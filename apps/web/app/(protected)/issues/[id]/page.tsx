@@ -13,7 +13,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Card, Badge, Button } from "@/components/ui";
-import { COMPENSATION_TYPES, ISSUE_STATUSES } from "@repo/shared";
+import { COMPENSATION_TYPES, ISSUE_STATUSES } from "shared";
 import { ApplyButton } from "./ApplyButton";
 
 export default async function IssueDetailPage({

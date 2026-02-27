@@ -328,6 +328,12 @@ export default function IssueDetailScreen() {
                     </TouchableOpacity>
                   )}
                 </Card>
+              ) : issue.status === "closed" || issue.status === "completed" ? (
+                <View className="p-4 bg-slate-100 rounded-xl">
+                  <Text className="text-slate-600 text-center">
+                    This issue is no longer accepting applications
+                  </Text>
+                </View>
               ) : (
                 <Button onPress={() => setShowApplyModal(true)}>
                   Apply for this Issue

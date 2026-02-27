@@ -3,8 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { issueSchema } from "@repo/shared";
-import type { IssueInput } from "@repo/shared";
+import { issueSchema } from "shared";
+import type { IssueInput } from "shared";
 
 export async function createIssue(formData: IssueInput) {
   const supabase = await createClient();
@@ -137,6 +137,15 @@ export async function updateIssueStatus(issueId: string, status: string) {
 
   if (updateError) {
     return { error: "Failed to update status" };
+  }
+
+  // If issue is now "fully staffed", auto-reject all pending applications
+  if (status === "in_progress_full") {
+    await supabase
+      .from("issue_interests")
+      .update({ status: "rejected", updated_at: new Date().toISOString() })
+      .eq("issue_id", issueId)
+      .eq("status", "pending");
   }
 
   revalidatePath("/dashboard");

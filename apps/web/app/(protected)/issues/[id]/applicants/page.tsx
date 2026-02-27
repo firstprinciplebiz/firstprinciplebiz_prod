@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, User, GraduationCap, Calendar, MessageSquare } from "lucide-react";
 import { Card, Badge, Button } from "@/components/ui";
-import { INTEREST_STATUSES } from "@repo/shared";
+import { INTEREST_STATUSES } from "shared";
 import { ApplicantActions } from "./ApplicantActions";
 
 export default async function IssueApplicantsPage({

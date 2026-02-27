@@ -68,12 +68,21 @@ export default function DashboardScreen() {
             .select("*", { count: "exact", head: true })
             .eq("student_id", profile.id);
 
-          // Get approved count
-          const { count: approvedCount } = await supabase
+          // Get approved count (in progress + closed)
+          const { data: approvedInterestsForCount } = await supabase
             .from("issue_interests")
-            .select("*", { count: "exact", head: true })
+            .select("issue_id, issues(status)")
             .eq("student_id", profile.id)
             .eq("status", "approved");
+          
+          const approvedCount = approvedInterestsForCount?.filter(
+            (i: any) => i.issues && (
+              i.issues.status === "in_progress_accepting" || 
+              i.issues.status === "in_progress_full" ||
+              i.issues.status === "completed" || 
+              i.issues.status === "closed"
+            )
+          ).length || 0;
 
           // Get approved interests with issue status
           const { data: approvedInterests } = await supabase
@@ -95,7 +104,7 @@ export default function DashboardScreen() {
 
           setStats({
             applications: appCount || 0,
-            approved: approvedCount || 0,
+            approved: approvedCount, // This now includes in progress + closed
             issuesClosed: closedCount,
             inProgress: inProgressCount,
           });

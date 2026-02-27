@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { issueSchema, type IssueInput, EXPERTISE_AREAS, COMPENSATION_TYPES } from "@repo/shared";
+import { issueSchema, type IssueInput, EXPERTISE_AREAS, COMPENSATION_TYPES } from "shared";
 import { Button, Input, Textarea, Select, MultiSelect, Card } from "@/components/ui";
 import { updateIssue } from "@/lib/issues/actions";
 import { createClient } from "@/lib/supabase/client";
